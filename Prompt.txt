@@ -1,0 +1,7 @@
+ceci est un projet d'app mobile pour la prédiction des scores des 
+maatchs de football et cela va se passer par la prise des décision de plusieurs agents ia, 
+les APIs sont prètes et le design sur une image que j'ai déjà nommé "design_app.jpg" 
+et le logo qui doit être l'icon de l'app, une sign up/in  via supabase et un moyen de paiement via shwary;
+ les APIs de football j'ai pris celui de api-fooball où tu doit utliser cette configuration ""wixfutures?=live" et
+ celui de TheSportsDB et celui de football-data, crée-moi cette application en flutter et
+ fais une configuration de android 11+
