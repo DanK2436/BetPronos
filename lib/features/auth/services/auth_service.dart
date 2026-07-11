@@ -1,60 +1,49 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final SupabaseClient _client = Supabase.instance.client;
 
-  /// Connecte l'utilisateur avec email et mot de passe.
-  /// Retourne les credentials de l'utilisateur connecté.
-  /// Lance une [FirebaseAuthException] en cas d'échec (mauvais identifiants, etc.).
-  Future<UserCredential> signInWithEmailAndPassword({
+  /// Connecte un utilisateur avec son email et mot de passe.
+  /// Retourne la réponse d'authentification contenant la session et l'utilisateur.
+  /// Lance une [AuthException] en cas d'échec.
+  Future<AuthResponse> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    // Utilisation des paramètres fournis, plus de valeurs codées en dur !
-    return await _auth.signInWithEmailAndPassword(
+    return await _client.auth.signInWithPassword(
       email: email,
       password: password,
     );
   }
 
-  /// Crée un nouvel utilisateur avec email et mot de passe.
-  /// Retourne les credentials du nouvel utilisateur.
-  /// Lance une [FirebaseAuthException] en cas d'erreur (email déjà utilisé, mot de passe faible…).
-  Future<UserCredential> createUserWithEmailAndPassword({
+  /// Crée un nouveau compte utilisateur avec email et mot de passe.
+  /// Retourne la réponse d'authentification.
+  /// L'utilisateur peut nécessiter une confirmation par email selon la configuration Supabase.
+  Future<AuthResponse> createUserWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    return await _auth.createUserWithEmailAndPassword(
+    return await _client.auth.signUp(
       email: email,
       password: password,
     );
   }
 
-  /// Déconnecte l'utilisateur actuel.
+  /// Déconnecte l'utilisateur actuellement connecté.
   Future<void> signOut() async {
-    await _auth.signOut();
+    await _client.auth.signOut();
   }
 
-  /// Envoie un email de réinitialisation de mot de passe.
-  /// Lance une [FirebaseAuthException] si l'adresse email n'existe pas, etc.
+  /// Envoie un email de réinitialisation du mot de passe.
   Future<void> sendPasswordResetEmail({required String email}) async {
-    await _auth.sendPasswordResetEmail(email: email);
-  }
-
-  /// Envoie un email de vérification à l'utilisateur actuellement connecté.
-  /// Ne fait rien si aucun utilisateur n'est connecté.
-  Future<void> sendEmailVerification() async {
-    final user = _auth.currentUser;
-    if (user != null && !user.emailVerified) {
-      await user.sendEmailVerification();
-    }
+    await _client.auth.resetPasswordForEmail(email);
   }
 
   /// Retourne l'utilisateur actuellement connecté, ou `null` si personne ne l'est.
   User? getCurrentUser() {
-    return _auth.currentUser;
+    return _client.auth.currentUser;
   }
 
-  /// (Optionnel) Écoute les changements d'état d'authentification en temps réel.
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
+  /// Écoute les changements d'état de l'authentification (connexion, déconnexion, mise à jour du token...).
+  Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
 }
