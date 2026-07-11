@@ -9,7 +9,7 @@ class EmailOtpService {
   Future<void> sendOtp({required String email}) async {
     try {
       final response = await _functionsClient.invoke(
-        'sendOtp', // ✅ nom de la fonction en premier argument positionnel
+        'sendOtp',
         body: {'email': email},
       );
       final data = response.data as Map<String, dynamic>? ?? {};
@@ -24,7 +24,7 @@ class EmailOtpService {
   Future<bool> verifyOtp({required String email, required String code}) async {
     try {
       final response = await _functionsClient.invoke(
-        'verifyOtp', // ✅ idem
+        'verifyOtp',
         body: {'email': email, 'code': code},
       );
       final data = response.data as Map<String, dynamic>? ?? {};
