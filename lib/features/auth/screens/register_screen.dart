@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../services/email_otp_service.dart';
 import '../../home/screens/home_screen.dart';
 import 'otp_screen.dart';
+import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -18,9 +20,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final EmailOtpService _otpService = EmailOtpService();
 
-  /// Traduit les erreurs techniques en messages clairs
+  late final EmailOtpService _otpService;
+
+  @override
+  void initState() {
+    super.initState();
+    _otpService = EmailOtpService(Supabase.instance.client.functions);
+  }
+
   String _translateError(String error) {
     if (error.contains('Email rate limit exceeded') ||
         error.contains('over_email_send_rate_limit')) {
@@ -41,7 +49,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return 'Limite atteinte : 2 comptes maximum par appareil.';
     }
     if (error.contains('network') || error.contains('SocketException')) {
-      return '📵 Pas de connexion internet. Vérifiez votre réseau.';
+      return 'Pas de connexion internet. Vérifiez votre réseau.';
     }
     return 'Une erreur est survenue. Veuillez réessayer.';
   }
@@ -53,7 +61,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final email = _emailController.text.trim();
 
     try {
-      await authProvider.register(
+      final success = await authProvider.register(
         email,
         _passwordController.text,
         _usernameController.text.trim(),
@@ -61,34 +69,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      // Aller vers l'écran OTP pour confirmer l'email
-      Navigator.of(context).push(MaterialPageRoute(
-        builder: (_) => OtpScreen(
-          email: email,
-          otpService: _otpService,
-          isSignup: true,
-          onVerified: () {
-            if (!mounted) return;
-            Navigator.of(context).pushAndRemoveUntil(
-              MaterialPageRoute(builder: (_) => const HomeScreen()),
-              (route) => false,
-            );
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-              content: Text('✅ Inscription réussie ! Bienvenue sur betPronos !'),
-              backgroundColor: AppColors.success,
-            ));
-          },
-        ),
-      ));
+      if (success) {
+        // Envoyer l'OTP avant de naviguer
+        await _otpService.sendOtp(email: email);
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => OtpScreen(
+              email: email,
+              otpService: _otpService,
+              isSignup: true,
+            ),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Échec de l'inscription. Vérifiez vos informations."),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
     } catch (e) {
       if (mounted) {
         final msg = _translateError(e.toString());
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(msg),
-          backgroundColor: AppColors.error,
-          duration: const Duration(seconds: 5),
-          behavior: SnackBarBehavior.floating,
-        ));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(msg),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       }
     }
   }
@@ -104,7 +115,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
-
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -116,7 +126,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       extendBodyBehindAppBar: true,
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        decoration: const BoxDecoration(
+          gradient: AppColors.backgroundGradient,
+        ),
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
@@ -127,63 +139,91 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Text(
+                    const SizedBox(height: 40),
+                    Text(
                       'Créer un compte',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
+                      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'Rejoignez la communauté betPronos',
+                    Text(
+                      'Rejoignez BetPronos et accédez aux prédictions IA',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: AppColors.textSecondary),
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 32),
-                    _buildField(
+                    TextFormField(
                       controller: _usernameController,
-                      label: "Nom d'utilisateur",
-                      icon: Icons.person,
-                      validator: (v) => v == null || v.trim().isEmpty
-                          ? "Saisissez un nom d'utilisateur"
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildField(
-                      controller: _emailController,
-                      label: 'Email',
-                      icon: Icons.email,
-                      keyboardType: TextInputType.emailAddress,
-                      validator: (v) => v == null || !v.contains('@')
-                          ? 'Email invalide'
-                          : null,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildField(
-                      controller: _passwordController,
-                      label: 'Mot de passe',
-                      icon: Icons.lock,
-                      obscureText: true,
-                      validator: (v) => v == null || v.length < 6
-                          ? 'Au moins 6 caractères requis'
-                          : null,
-                    ),
-                    const SizedBox(height: 8),
-                    // Info OTP
-                    Row(
-                      children: const [
-                        Icon(Icons.info_outline,
-                            color: AppColors.textMuted, size: 14),
-                        SizedBox(width: 6),
-                        Text(
-                          'Un code de vérification sera envoyé par email.',
-                          style: TextStyle(
-                              color: AppColors.textMuted, fontSize: 12),
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Nom d\'utilisateur',
+                        labelStyle: const TextStyle(color: AppColors.textSecondary),
+                        filled: true,
+                        fillColor: AppColors.surface,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
                         ),
-                      ],
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Veuillez entrer un nom d\'utilisateur';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Email',
+                        labelStyle: const TextStyle(color: AppColors.textSecondary),
+                        filled: true,
+                        fillColor: AppColors.surface,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return 'Veuillez entrer votre email';
+                        }
+                        if (!value.contains('@')) {
+                          return 'Email invalide';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: true,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Mot de passe',
+                        labelStyle: const TextStyle(color: AppColors.textSecondary),
+                        filled: true,
+                        fillColor: AppColors.surface,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Veuillez entrer un mot de passe';
+                        }
+                        if (value.length < 6) {
+                          return 'Le mot de passe doit contenir au moins 6 caractères';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 24),
                     ElevatedButton(
@@ -193,13 +233,40 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       child: authProvider.isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : const Text("S'inscrire",
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Text(
+                              'S\'inscrire',
                               style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Déjà un compte ? Se connecter',
+                        style: TextStyle(color: AppColors.primary),
+                      ),
                     ),
                   ],
                 ),
@@ -208,38 +275,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _buildField({
-    required TextEditingController controller,
-    required String label,
-    required IconData icon,
-    TextInputType keyboardType = TextInputType.text,
-    bool obscureText = false,
-    String? Function(String?)? validator,
-  }) {
-    return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      obscureText: obscureText,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: AppColors.textSecondary),
-        filled: true,
-        fillColor: AppColors.surface,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF23263D)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary),
-        ),
-        prefixIcon: Icon(icon, color: AppColors.textSecondary),
-      ),
-      validator: validator,
     );
   }
 }
