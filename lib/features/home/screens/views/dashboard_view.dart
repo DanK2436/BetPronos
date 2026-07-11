@@ -209,27 +209,27 @@ class DashboardView extends StatelessWidget {
 
                 const SliverToBoxAdapter(child: SizedBox(height: 28)),
 
-                // ──────────── PROCHAINS 48H ────────────
+                // ──────────── PROCHAINS 72H ────────────
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   sliver: SliverToBoxAdapter(
                     child: _SectionHeader(
                       icon: Icons.schedule_rounded,
                       iconColor: AppColors.warning,
-                      title: 'À venir — 48 heures',
-                      subtitle: '${matchProvider.upcoming48hMatches.length} match(s) programmé(s)',
+                      title: 'À venir — 72 heures',
+                      subtitle: '${matchProvider.upcoming72hMatches.length} match(s) programmé(s)',
                     ),
                   ),
                 ),
                 const SliverToBoxAdapter(child: SizedBox(height: 12)),
 
-                if (!matchProvider.isLoading && matchProvider.upcoming48hMatches.isEmpty)
+                if (!matchProvider.isLoading && matchProvider.upcoming72hMatches.isEmpty)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
                       child: _EmptyState(
                         icon: Icons.calendar_today_outlined,
-                        message: 'Aucun match programmé dans les 48h',
+                        message: 'Aucun match programmé dans les 72h.\nTirez vers le bas pour rafraîchir.',
                       ),
                     ),
                   )
@@ -239,10 +239,10 @@ class DashboardView extends StatelessWidget {
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
-                          final match = matchProvider.upcoming48hMatches[index];
+                          final match = matchProvider.upcoming72hMatches[index];
                           return _UpcomingMatchCard(match: match);
                         },
-                        childCount: matchProvider.upcoming48hMatches.length,
+                        childCount: matchProvider.upcoming72hMatches.length,
                       ),
                     ),
                   ),

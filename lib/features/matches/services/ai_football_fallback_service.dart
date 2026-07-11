@@ -122,9 +122,10 @@ class AiFootballFallbackService {
   /// Prompt de recherche globale des matchs réels de toutes les compétitions du jour
   String _buildSearchPrompt(String dateStr) {
     return '''
-Recherche sur le web (BetPawa, 1XBet, Flashscore, etc.) les matchs de football réels programmés ou en direct pour aujourd'hui et les prochaines 48 heures ($dateStr).
-Inclus des matchs de TOUTES les compétitions de football possibles (Europe, Afrique, Amérique du Sud, etc., ex: Ligue des Champions, Premier League, La Liga, Ligue 1, CAF, Ligue 1 Congolaise, etc.).
-Retourne les 20 matchs les plus importants et intéressants pour les parieurs.
+Recherche sur le web (Flashscore, Sofascore, BetPawa, 1XBet) les vrais matchs de football réels en direct ET programmés pour aujourd'hui et les 72 prochaines heures (à partir du $dateStr).
+Inclus absolument les matchs SCHEDULED (à venir) dans les 72h, pas seulement les matchs live.
+Cible toutes les compétitions majeures et mineures : Ligue des Champions, Premier League, La Liga, Ligue 1, Serie A, Bundesliga, CAF Champions League, CHAN, Ligue 1 Congolaise, Copa Libertadores, etc.
+Retourne les 20 matchs les plus intéressants en JSON (inclure matchs futurs dans les 72h obligatoirement).
 
 Tu DOIS retourner un tableau JSON d'objets respectant STRICTEMENT cette structure (ne mets pas de balises markdown ```json ou d'explications, seulement le JSON brut) :
 [

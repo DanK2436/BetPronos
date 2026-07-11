@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
 import '../../../shared/models/match_model.dart';
 import '../services/football_aggregator.dart';
 import '../services/ai_football_fallback_service.dart';
@@ -11,6 +11,7 @@ class MatchProvider extends ChangeNotifier {
   List<MatchModel> _matches = [];
   bool _isLoading = false;
   bool _isCheckingScores = false;
+  Timer? _scoreRefreshTimer;
 
   List<MatchModel> get matches => _matches;
   bool get isLoading => _isLoading;
@@ -20,10 +21,10 @@ class MatchProvider extends ChangeNotifier {
   List<MatchModel> get liveMatches =>
       _matches.where((m) => m.status == MatchStatus.live).toList();
 
-  /// Matchs programmés dans les 48 prochaines heures
-  List<MatchModel> get upcoming48hMatches {
+  /// Matchs programmés dans les 72 prochaines heures
+  List<MatchModel> get upcoming72hMatches {
     final now = DateTime.now();
-    final limit = now.add(const Duration(hours: 48));
+    final limit = now.add(const Duration(hours: 72));
     final result = _matches
         .where((m) =>
             m.status == MatchStatus.scheduled &&
@@ -34,7 +35,10 @@ class MatchProvider extends ChangeNotifier {
     return result;
   }
 
-  /// Tous les matchs programmés (non filtrés par 48h)
+  /// Alias conservé pour compatibilité
+  List<MatchModel> get upcoming48hMatches => upcoming72hMatches;
+
+  /// Tous les matchs programmés (non filtrés)
   List<MatchModel> get scheduledMatches {
     final result = _matches
         .where((m) => m.status == MatchStatus.scheduled)
@@ -51,26 +55,35 @@ class MatchProvider extends ChangeNotifier {
     notifyListeners();
     try {
       _matches = await _aggregator.getTodayMatches();
-      // Lancer immédiatement la vérification des scores en temps réel par les IAs après le fetch
-      if (_matches.isNotEmpty) {
-        verifyLiveScores();
-      }
     } catch (e) {
       debugPrint('Fetch matches error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
     }
+
+    // Lancer la vérification des scores en temps réel après le chargement initial
+    _startScoreRefresh();
   }
 
-  /// Vérifie et met à jour en arrière-plan les scores en direct à l'aide de l'IA (Perplexity / Grok / Gemini)
+  /// Démarre un timer de rafraîchissement des scores toutes les 2 minutes
+  void _startScoreRefresh() {
+    _scoreRefreshTimer?.cancel();
+    // Premier check immédiat
+    verifyLiveScores();
+    // Puis toutes les 2 minutes
+    _scoreRefreshTimer = Timer.periodic(const Duration(minutes: 2), (_) {
+      verifyLiveScores();
+    });
+  }
+
+  /// Vérifie et met à jour les scores en direct grâce aux IAs (Perplexity / Grok / Gemini)
   Future<void> verifyLiveScores() async {
-    if (_isCheckingScores) return;
+    if (_isCheckingScores || _matches.isEmpty) return;
     _isCheckingScores = true;
     notifyListeners();
 
     try {
-      // Nous envoyons tous les matchs en direct et programmés proches à l'IA pour vérifier s'ils ont commencé ou ont changé
       final updatedMatches = await _aiFallback.verifyLiveScoresWithAI(_matches);
       _matches = updatedMatches;
     } catch (e) {
@@ -79,5 +92,11 @@ class MatchProvider extends ChangeNotifier {
       _isCheckingScores = false;
       notifyListeners();
     }
+  }
+
+  @override
+  void dispose() {
+    _scoreRefreshTimer?.cancel();
+    super.dispose();
   }
 }

@@ -8,8 +8,9 @@ class ShwaryService {
   final http.Client _client = http.Client();
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  /// Initialise un paiement mobile money direct (sans redirection Web)
-  /// Envoie un push de paiement (USSD PIN Prompt) directement sur le téléphone de l'utilisateur.
+  /// Initie un paiement Mobile Money DRC via l'API directe Shwary
+  /// Endpoint réel : POST https://api.shwary.com/api/v1/merchants/payment/DRC
+  /// Auth : x-merchant-id + x-merchant-key (pas Authorization: Bearer)
   Future<Map<String, dynamic>> initializeDirectPayment({
     required String userId,
     required String email,
@@ -20,103 +21,102 @@ class ShwaryService {
     required String phoneNumber,
     required String planName,
   }) async {
+    // 1. Formater le numéro au format E.164 (+243...)
+    String formattedPhone = phoneNumber.trim();
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '+243${formattedPhone.substring(1)}';
+    } else if (!formattedPhone.startsWith('+')) {
+      formattedPhone = '+243$formattedPhone';
+    }
+
+    // 2. Insérer le paiement en attente dans Supabase
+    debugPrint('💾 Insertion du paiement pending ($reference)...');
     try {
-      // 1. Insérer le paiement en attente ("pending") dans la table "payments" de Supabase
-      debugPrint('💾 Insertion du paiement en attente dans Supabase ($reference)...');
       await _supabase.from('payments').insert({
         'user_id': userId,
         'amount': amount.toInt(),
         'currency': currency,
         'operator': operator,
-        'phone_number': phoneNumber,
+        'phone_number': formattedPhone,
         'shwary_reference': reference,
         'status': 'pending',
         'plan_name': planName,
       });
+    } catch (e) {
+      debugPrint('⚠️ Supabase insert warning: $e');
+    }
 
-      // 2. Appeler l'API Shwary Direct Charge pour envoyer le push USSD de paiement
-      debugPrint('📲 Envoi de la demande de débit Direct Mobile Money ($operator)...');
-      final url = Uri.parse('${ApiConstants.shwaryBaseUrl}/payments/collect');
-      
+    // 3. Appeler l'API Shwary réelle — Direct Charge DRC
+    debugPrint('📲 Envoi requête Shwary Direct: $formattedPhone → $amount CDF');
+    try {
+      final url = Uri.parse('${ApiConstants.shwaryBaseUrl}/merchants/payment/DRC');
       final response = await _client.post(
         url,
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${ApiConstants.shwaryApiKey}',
+          'x-merchant-id': ApiConstants.shwaryMerchantId,
+          'x-merchant-key': ApiConstants.shwaryApiKey,
         },
         body: json.encode({
-          'email': email,
-          'amount': amount,
-          'currency': currency,
-          'reference': reference,
-          'operator': operator.toLowerCase().replaceAll(' ', '_').replaceAll('-', ''), // orange_money, mpesa, airtel_money
-          'phone_number': phoneNumber,
-          'callback_url': ApiConstants.shwaryWebhookUrl,
+          'amount': amount.toInt(),
+          'clientPhoneNumber': formattedPhone,
+          'callbackUrl': ApiConstants.shwaryWebhookUrl,
         }),
-      );
+      ).timeout(const Duration(seconds: 20));
+
+      debugPrint('📡 Shwary réponse: ${response.statusCode} — ${response.body}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final data = json.decode(response.body);
+        // Sauvegarder l'ID de transaction Shwary dans Supabase
+        final shwaryTxId = data['id']?.toString() ?? reference;
+        try {
+          await _supabase
+              .from('payments')
+              .update({'shwary_reference': shwaryTxId})
+              .eq('shwary_reference', reference);
+        } catch (_) {}
         return {
           'success': true,
           'status': data['status'] ?? 'pending',
-          'reference': reference,
+          'reference': shwaryTxId,
+          'isSandbox': data['isSandbox'] ?? false,
         };
       } else {
-        debugPrint('⚠️ Réponse API Shwary Direct: ${response.statusCode} - ${response.body}');
-        // Simuler le succès d'envoi du push en mode sandbox/démo
+        debugPrint('⚠️ Shwary erreur ${response.statusCode}: ${response.body}');
         return {
-          'success': true,
-          'status': 'pending',
+          'success': false,
+          'error': 'Erreur API Shwary: ${response.statusCode}',
           'reference': reference,
         };
       }
     } catch (e) {
-      debugPrint('❌ Erreur lors du débit Shwary direct: $e');
-      // Mode simulation hors-ligne
+      debugPrint('❌ Exception Shwary: $e');
       return {
-        'success': true,
-        'status': 'pending',
+        'success': false,
+        'error': e.toString(),
         'reference': reference,
       };
     }
   }
 
-  /// Vérifie le statut du paiement en interrogeant l'API Shwary ou notre table Supabase
+  /// Vérifie le statut du paiement via Supabase (webhook) ou l'API Shwary
   Future<bool> verifyPaymentStatus(String reference) async {
     try {
-      // D'abord vérifier dans notre base Supabase (si le webhook a déjà répondu)
-      final profile = await _supabase
+      // D'abord vérifier via Supabase si le webhook a déjà mis à jour le statut
+      final row = await _supabase
           .from('payments')
           .select('status')
           .eq('shwary_reference', reference)
           .maybeSingle();
 
-      if (profile != null && profile['status'] == 'success') {
+      if (row != null && row['status'] == 'success') {
         return true;
       }
 
-      // Sinon, interroger directement l'API de vérification Shwary
-      final url = Uri.parse('${ApiConstants.shwaryBaseUrl}/payments/verify/$reference');
-      final response = await _client.get(
-        url,
-        headers: {
-          'Authorization': 'Bearer ${ApiConstants.shwaryApiKey}',
-        },
-      ).timeout(const Duration(seconds: 5));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final status = data['status'] == 'success';
-        if (status) {
-          // Mettre à jour Supabase localement si nécessaire
-          await _supabase.from('payments').update({'status': 'success', 'confirmed_at': DateTime.now().toIso8601String()}).eq('shwary_reference', reference);
-        }
-        return status;
-      }
       return false;
     } catch (e) {
-      debugPrint('Erreur lors de la vérification de paiement: $e');
+      debugPrint('Erreur vérification paiement: $e');
       return false;
     }
   }
