@@ -71,13 +71,12 @@ class AppTheme {
       labelStyle: const TextStyle(color: AppColors.textSecondary),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.surface,
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
-      shadowColor: Colors.grey.withOpacity(0.1),
     ),
     textTheme: const TextTheme(
       headlineLarge: TextStyle(
