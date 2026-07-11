@@ -8,16 +8,36 @@ class MatchProvider extends ChangeNotifier {
 
   List<MatchModel> _matches = [];
   bool _isLoading = false;
-  String _searchQuery = '';
 
   List<MatchModel> get matches => _matches;
   bool get isLoading => _isLoading;
 
+  /// Matchs en cours (live)
   List<MatchModel> get liveMatches =>
       _matches.where((m) => m.status == MatchStatus.live).toList();
 
-  List<MatchModel> get scheduledMatches =>
-      _matches.where((m) => m.status == MatchStatus.scheduled).toList();
+  /// Matchs programmés dans les 48 prochaines heures
+  List<MatchModel> get upcoming48hMatches {
+    final now = DateTime.now();
+    final limit = now.add(const Duration(hours: 48));
+    final result = _matches
+        .where((m) =>
+            m.status == MatchStatus.scheduled &&
+            m.dateTime.isAfter(now) &&
+            m.dateTime.isBefore(limit))
+        .toList();
+    result.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return result;
+  }
+
+  /// Tous les matchs programmés (non filtrés par 48h)
+  List<MatchModel> get scheduledMatches {
+    final result = _matches
+        .where((m) => m.status == MatchStatus.scheduled)
+        .toList();
+    result.sort((a, b) => a.dateTime.compareTo(b.dateTime));
+    return result;
+  }
 
   List<MatchModel> get finishedMatches =>
       _matches.where((m) => m.status == MatchStatus.finished).toList();
@@ -33,10 +53,5 @@ class MatchProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
-  }
-
-  void updateSearchQuery(String query) {
-    _searchQuery = query;
-    notifyListeners();
   }
 }

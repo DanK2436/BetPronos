@@ -1,45 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
-import 'core/app_theme.dart';   // ✅ import corrigé
+import 'core/constants/api_constants.dart';
+import 'core/constants/app_theme.dart';
 import 'features/auth/providers/auth_provider.dart';
-import 'features/auth/services/auth_service.dart';
 import 'features/auth/screens/splash_screen.dart';
-import 'features/auth/screens/login_screen.dart';
-import 'features/auth/screens/register_screen.dart';
 import 'features/home/screens/home_screen.dart';
+import 'features/matches/providers/match_provider.dart';
+import 'features/predictions/providers/prediction_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Supabase.initialize(
-    url: 'https://cgyiipfmplrrshevhpof.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneWlpcGZtcGxycnNoZXZocG9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzQ2MDgsImV4cCI6MjA5MDgxMDYwOH0.pFia6_FvyF9cth1T9JgjDXLhvJkjxoxLf5okIQlHTvI',
+    url: ApiConstants.supabaseUrl,
+    anonKey: ApiConstants.supabaseAnonKey,
   );
-  runApp(const MyApp());
+
+  runApp(const BetPronosApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class BetPronosApp extends StatelessWidget {
+  const BetPronosApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(
-          create: (_) => AuthProvider(AuthService()),
-        ),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => MatchProvider()),
+        ChangeNotifierProvider(create: (_) => PredictionProvider()),
       ],
       child: MaterialApp(
-        title: 'BetPronos',
+        title: 'betPronos',
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        initialRoute: '/',
-        routes: {
-          '/': (context) => const SplashScreen(),
-          '/login': (context) => const LoginScreen(),
-          '/register': (context) => const RegisterScreen(),
-          '/home': (context) => const HomeScreen(),
-        },
+        // Thème sombre violet — inspiré du nouveau design
+        theme: AppTheme.darkTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.dark,
+        home: const SplashScreen(),
       ),
     );
   }

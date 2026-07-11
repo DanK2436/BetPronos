@@ -1,42 +1,60 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Couleurs principales (orange/bleu)
-  static const Color primary = Color(0xFFFF6B00);      // Orange vif
-  static const Color primaryLight = Color(0xFFFF8C42); // Orange clair
-  static const Color primaryDark = Color(0xFFCC5500);  // Orange foncé
-  
-  static const Color secondary = Color(0xFF1A2A3A);    // Bleu foncé
-  static const Color secondaryLight = Color(0xFF2C3E50);
-  static const Color secondaryDark = Color(0xFF0D1B2A);
-  
-  // Couleurs d'arrière-plan
-  static const Color background = Color(0xFFF5F7FA);
-  static const Color surface = Colors.white;
-  static const Color surfaceDark = Color(0xFFE8ECF1);
-  
-  // Couleurs de texte
-  static const Color textPrimary = Color(0xFF1A1A1A);
-  static const Color textSecondary = Color(0xFF6B7A8A);
-  static const Color textLight = Color(0xFF9EADBA);
+  // ─── Couleurs principales — Thème Violet/Sombre ───
+  static const Color primary = Color(0xFF7C3AED);       // Violet vif
+  static const Color primaryLight = Color(0xFF9E95F5);  // Violet clair
+  static const Color primaryDark = Color(0xFF5B21B6);   // Violet foncé
+  static const Color secondary = Color(0xFF9E95F5);     // Lavande
+  static const Color secondaryLight = Color(0xFFC4B5FD);
+
+  // ─── Arrière-plans ───
+  static const Color background = Color(0xFF0D0E21);    // Bleu nuit profond
+  static const Color surface = Color(0xFF161829);       // Surface légèrement plus claire
+  static const Color surfaceElevated = Color(0xFF1E2035); // Surface élevée
+
+  // ─── Texte ───
+  static const Color textPrimary = Colors.white;
+  static const Color textSecondary = Color(0xFFB0B3C6); // Gris lavande
+  static const Color textMuted = Color(0xFF6B6E8A);     // Gris sombre
   static const Color textWhite = Colors.white;
-  
-  // Couleurs d'état
-  static const Color success = Color(0xFF27AE60);
-  static const Color error = Color(0xFFE74C3C);
-  static const Color warning = Color(0xFFF39C12);
-  static const Color info = Color(0xFF3498DB);
-  
-  // Dégradés
+
+  // ─── États ───
+  static const Color success = Color(0xFF22C55E);       // Vert vif
+  static const Color error = Color(0xFFEF4444);         // Rouge vif
+  static const Color warning = Color(0xFFF59E0B);       // Ambre
+  static const Color info = Color(0xFF3B82F6);          // Bleu
+
+  // ─── Agents IA ───
+  static const Color agentGemini = Color(0xFF4285F4);   // Bleu Google
+  static const Color agentOpenAI = Color(0xFF10B981);   // Vert émeraude
+  static const Color agentMistral = Color(0xFFFF7A00);  // Orange Mistral
+  static const Color agentDeepSeek = Color(0xFF6366F1); // Indigo
+  static const Color agentGrok = Color(0xFF000000);     // Noir Grok
+  static const Color agentPerplexity = Color(0xFF20B2AA);// Turquoise
+
+  // ─── Dégradés ───
   static const LinearGradient primaryGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [primary, primaryLight],
+    colors: [Color(0xFF7C3AED), Color(0xFF9E95F5)],
   );
-  
+
   static const LinearGradient backgroundGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFFF5F7FA), Colors.white],
+    colors: [Color(0xFF0D0E21), Color(0xFF111328)],
+  );
+
+  static const LinearGradient cardGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF161829), Color(0xFF1E2035)],
+  );
+
+  static const LinearGradient heroGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF5B21B6), Color(0xFF7C3AED), Color(0xFF9E95F5)],
   );
 }
