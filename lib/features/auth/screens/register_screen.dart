@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/constants/app_colors.dart';
 import '../providers/auth_provider.dart';
-import '../services/email_otp_service.dart';
 import '../../home/screens/home_screen.dart';
-import 'otp_screen.dart';
 import 'login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -21,13 +18,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  late final EmailOtpService _otpService;
-
-  @override
-  void initState() {
-    super.initState();
-    _otpService = EmailOtpService(Supabase.instance.client.functions);
-  }
+  // Suppression de tout ce qui concerne EmailOtpService
 
   String _translateError(String error) {
     if (error.contains('Email rate limit exceeded') ||
@@ -64,7 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final email = _emailController.text.trim();
 
     try {
-      // La méthode register lance une exception en cas d'échec
+      // Inscription sans OTP
       await authProvider.register(
         email,
         _passwordController.text,
@@ -73,17 +64,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      // Inscription réussie → envoyer OTP
-      await _otpService.sendOtp(email: email);
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => OtpScreen(
-            email: email,
-            otpService: _otpService,
-            isSignup: true,
-          ),
-        ),
-      );
+      // ✅ Redirection directe vers Home
+      Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       if (mounted) {
         final msg = _translateError(e.toString());
