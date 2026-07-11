@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
-// Modèles locaux pour éviter les imports manquants
+// Modèles locaux
 class AppUser {
   final String id;
   final String email;
   final bool isPremium;
   final int predictionsLeft;
-  AppUser({required this.id, required this.email, this.isPremium = false, this.predictionsLeft = 3});
+  AppUser({
+    required this.id,
+    required this.email,
+    this.isPremium = false,
+    this.predictionsLeft = 3,
+  });
 }
 
 class UserProfile {
@@ -24,6 +29,7 @@ class AuthProvider extends ChangeNotifier {
 
   AuthProvider(this._authService) {
     final currentUser = _authService.getCurrentUser();
+    debugPrint('AuthProvider: currentUser = $currentUser');
     if (currentUser != null) {
       _user = _mapAuthUserToAppUser(currentUser);
       _loadProfile();
@@ -37,43 +43,43 @@ class AuthProvider extends ChangeNotifier {
   bool get isAuthenticated => _user != null;
   bool get isPremium => _user?.isPremium ?? false;
   int get predictionsLeft => _user?.predictionsLeft ?? 0;
-  bool get canAccessPredictions => ((_user?.predictionsLeft ?? 0) > 0); // ✅ corrigé
+  bool get canAccessPredictions => (_user?.predictionsLeft ?? 0) > 0;
 
-  // Connexion
-  Future<bool> login(String email, String password) async {
+  // Connexion (propage l'erreur)
+  Future<void> login(String email, String password) async {
     _setLoading(true);
     try {
-      await _authService.signInWithEmailAndPassword(email: email, password: password);
+      await _authService.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       final authUser = _authService.getCurrentUser();
-      if (authUser != null) {
-        _user = _mapAuthUserToAppUser(authUser);
-        await _loadProfile();
-        _setLoading(false);
-        return true;
+      if (authUser == null) {
+        throw Exception('Impossible de récupérer l\'utilisateur après connexion.');
       }
-      return false;
-    } catch (e) {
+      _user = _mapAuthUserToAppUser(authUser);
+      await _loadProfile();
+    } finally {
       _setLoading(false);
-      return false;
     }
   }
 
-  // Inscription
-  Future<bool> register(String email, String password, String username) async {
+  // Inscription (propage l'erreur)
+  Future<void> register(String email, String password, String username) async {
     _setLoading(true);
     try {
-      await _authService.createUserWithEmailAndPassword(email: email, password: password);
+      await _authService.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
       final authUser = _authService.getCurrentUser();
-      if (authUser != null) {
-        _user = _mapAuthUserToAppUser(authUser, username: username);
-        await _loadProfile();
-        _setLoading(false);
-        return true;
+      if (authUser == null) {
+        throw Exception('Impossible de récupérer l\'utilisateur après inscription. Vérifiez votre email (confirmation requise ?).');
       }
-      return false;
-    } catch (e) {
+      _user = _mapAuthUserToAppUser(authUser, username: username);
+      await _loadProfile();
+    } finally {
       _setLoading(false);
-      return false;
     }
   }
 
@@ -85,10 +91,9 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Premium
+  // Premium (simulation)
   Future<void> makePremium() async {
     if (_user == null) return;
-    // À remplacer par un appel API réel
     _user = AppUser(
       id: _user!.id,
       email: _user!.email,
@@ -110,7 +115,8 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Méthodes privées
+  // --- Méthodes privées ---
+
   void _setLoading(bool loading) {
     _isLoading = loading;
     notifyListeners();
@@ -126,11 +132,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  AppUser _mapAuthUserToAppUser(dynamic authUser, {String? username}) {
+  AppUser _mapAuthUserToAppUser(User authUser, {String? username}) {
+    // Ici, vous pouvez charger des informations supplémentaires depuis Firestore
     return AppUser(
-      id: authUser.id ?? 'unknown',
+      id: authUser.id,
       email: authUser.email ?? 'no-email',
-      isPremium: false,
+      isPremium: false, // à remplacer par la vraie valeur
       predictionsLeft: 3,
     );
   }
