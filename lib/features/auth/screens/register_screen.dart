@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+<<<<<<< HEAD
 import '../../../core/constants/app_colors.dart';
 import '../../home/screens/home_screen.dart';
 import 'login_screen.dart';
+=======
+import '../../home/screens/home_screen.dart';
+>>>>>>> de88f16 (Suppression OTP, recherche matchs par IA et config paiement Shwary)
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -17,8 +21,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+<<<<<<< HEAD
   bool _obscurePassword = true;
 
+=======
+
+  /// Traduit les erreurs techniques en messages clairs pour l'utilisateur
+>>>>>>> de88f16 (Suppression OTP, recherche matchs par IA et config paiement Shwary)
   String _translateError(String error) {
     if (error.contains('already registered')) {
       return 'Cette adresse email est déjà utilisée.';
@@ -32,7 +41,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (error.contains('network')) {
       return 'Pas de connexion internet.';
     }
-    return 'Une erreur est survenue. Veuillez réessayer.';
+    return 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.';
   }
 
   void _submit() async {
@@ -41,14 +50,34 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
+<<<<<<< HEAD
       await authProvider.register(
         _emailController.text.trim(),
+=======
+      final success = await authProvider.register(
+        email,
+>>>>>>> de88f16 (Suppression OTP, recherche matchs par IA et config paiement Shwary)
         _passwordController.text,
         _usernameController.text.trim(),
       );
 
       if (!mounted) return;
+<<<<<<< HEAD
       Navigator.pushReplacementNamed(context, '/home');
+=======
+
+      if (success) {
+        // Redirection directe vers le compte (HomeScreen) sans passer par l'OTP
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const HomeScreen()),
+          (route) => false,
+        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('✅ Inscription réussie ! Bienvenue sur betPronos !'),
+          backgroundColor: AppColors.success,
+        ));
+      }
+>>>>>>> de88f16 (Suppression OTP, recherche matchs par IA et config paiement Shwary)
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -66,6 +95,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
     return Scaffold(
+<<<<<<< HEAD
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -210,6 +240,88 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         );
                       },
                       child: const Text('Se connecter'),
+=======
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      extendBodyBehindAppBar: true,
+      body: Container(
+        decoration: const BoxDecoration(gradient: AppColors.backgroundGradient),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Créer un compte',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Rejoignez la communauté betPronos',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                    const SizedBox(height: 32),
+                    _buildField(
+                      controller: _usernameController,
+                      label: "Nom d'utilisateur",
+                      icon: Icons.person,
+                      validator: (v) => v == null || v.trim().isEmpty
+                          ? "Saisissez un nom d'utilisateur"
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildField(
+                      controller: _emailController,
+                      label: 'Email',
+                      icon: Icons.email,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) => v == null || !v.contains('@')
+                          ? 'Email invalide'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildField(
+                      controller: _passwordController,
+                      label: 'Mot de passe',
+                      icon: Icons.lock,
+                      obscureText: true,
+                      validator: (v) => v == null || v.length < 6
+                          ? 'Au moins 6 caractères requis'
+                          : null,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton(
+                      onPressed: authProvider.isLoading ? null : _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12)),
+                      ),
+                      child: authProvider.isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : const Text("S'inscrire",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
+>>>>>>> de88f16 (Suppression OTP, recherche matchs par IA et config paiement Shwary)
                     ),
                   ],
                 ),

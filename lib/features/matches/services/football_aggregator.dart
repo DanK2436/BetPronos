@@ -3,11 +3,13 @@ import '../../../shared/models/match_model.dart';
 import 'api_football_service.dart';
 import 'thesportsdb_service.dart';
 import 'football_data_service.dart';
+import 'ai_football_fallback_service.dart';
 
 class FootballAggregator {
   final ApiFootballService _apiFootball = ApiFootballService();
   final TheSportsDbService _theSportsDb = TheSportsDbService();
   final FootballDataService _footballData = FootballDataService();
+  final AiFootballFallbackService _aiFallback = AiFootballFallbackService();
 
   Future<List<MatchModel>> getTodayMatches() async {
     List<MatchModel> aggregated = [];
@@ -34,7 +36,19 @@ class FootballAggregator {
       }
     }
 
-    // If still empty (due to offline/rate limit), provide beautiful mockup matches to guarantee rich UI!
+    // If still empty (due to offline/rate limit), fetch real matches using AI web search fallback!
+    if (aggregated.isEmpty) {
+      try {
+        final aiMatches = await _aiFallback.fetchMatchesFromAI();
+        if (aiMatches.isNotEmpty) {
+          aggregated.addAll(aiMatches);
+        }
+      } catch (e) {
+        debugPrint('AI Football aggregator fallback failed: $e');
+      }
+    }
+
+    // If still empty (e.g. no internet/AI rate limit), provide beautiful mockup matches as absolute fallback to guarantee rich UI!
     if (aggregated.isEmpty) {
       aggregated = _getMockMatches();
     }

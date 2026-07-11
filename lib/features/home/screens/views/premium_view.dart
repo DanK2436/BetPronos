@@ -67,16 +67,21 @@ class _PremiumViewState extends State<PremiumView> {
     });
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userId = authProvider.user?.id ?? '';
     final email = authProvider.user?.email ?? 'user@betpronos.com';
     final plan = _plans[_selectedPlanIndex];
     final reference = 'ref_${DateTime.now().millisecondsSinceEpoch}';
 
     // Call Shwary Payment Service
     final res = await _shwaryService.initializePayment(
+      userId: userId,
       email: email,
       amount: plan['price'].toDouble(),
       currency: 'CDF', // Congolais Franc
       reference: reference,
+      operator: _selectedOperator,
+      phoneNumber: _phoneController.text.trim(),
+      planName: plan['title'],
     );
 
     setState(() {
@@ -423,7 +428,9 @@ class _ShwaryWebViewState extends State<ShwaryWebView> {
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
-            if (url.contains('success') || url.contains('status=success') || url.contains('checkout.shwary.com/pay')) {
+            // Uniquement si l'URL contient des paramètres de succès (ex: callback de redirection de succès de paiement)
+            // et qu'il ne s'agit pas du chargement initial de pay
+            if ((url.contains('success') || url.contains('status=success')) && !url.contains('/pay?ref=')) {
               Future.delayed(const Duration(seconds: 2), () {
                 if (mounted) {
                   widget.onSuccess();

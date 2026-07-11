@@ -3,32 +3,24 @@ Première API :
 AQ.Ab8RN6KqC9ufPVhvfBHTB0xquZNi0tLyHdb5Be8RUi1JsySh_w
 Deuxième api :
 AQ.Ab8RN6KDpw_Jp7Ajtv6m97oVd967kCIlVTwwUAVYq1xSvGbFaQ
-
-Open ai 
-API Key  : sk-M0A20DXFHbwSr11LNih5hwcUt57RLZ8wCnIsjbBGrKyfBKjq
-
+Kimi
+API key : Sk-EHOsAlpCgotnkR3dAUoKlNCL1TOXOxMbrbodVkuU2ztj6dQ1
 Mistral 
 API  key: 4Y4z8BkOcEdi9YoEh9xckZ0eQzbXmklh
-
 Deepseek
 API key : sk-cd585bad3c394bf4a28f87301e1c0e35
-
+Z.ai
+API key : 69a4b36afdfb483e9f3e4b07dc5bcc1d.Zshz6QV4bKZzH8yv
+Ollama 
+Api key : bcc6a5daa24146a3a463728031da0f35.JqFbnFnPYpQzreSkp50Xfofr
+Perplexity 
+Api key : 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
+Grok
+Api key : xai-rEKaV75zjevaaph7tGFh6RbKZMkzW1TyBdPk3NwelJ0qsVM5S8n9K8rXZ0udZ5nS7JyaGeLmQ6pIg52a
 Shwary 
 API key : shwary_bddffc43-02a9-455d-9c2c-09928ac539cd
-
 Supabase 
 URL : https://cgyiipfmplrrshevhpof.supabase.co
 Pulic key : sb_publishable_o1ehyBjUjqPjfnenqxaIlQ_UhSe3LRe
 Anon key : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneWlpcGZtcGxycnNoZXZocG9mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyMzQ2MDgsImV4cCI6MjA5MDgxMDYwOH0.pFia6_FvyF9cth1T9JgjDXLhvJkjxoxLf5okIQlHTvI
 Secret key : eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNneWlpcGZtcGxycnNoZXZocG9mIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NTIzNDYwOCwiZXhwIjoyMDkwODEwNjA4fQ.sBmju6DftJ3LcSEldG4eKOszVgm8T8wZMiLN6p0tpe0
-
-API-Football : 
-Api key : 2814bb2f4d64fb650fb8655a308ea6ce
-
-TheSportsDB : 
-Api keys : 
-v1 Base URL = https://www.thesportsdb.com/api/v1/json 
-v2 Base URL = https://www.thesportsdb.com/api/v2/json
-
-football-data
-Api token : 94f10d05ccdf4a15aed6436360b4638c
