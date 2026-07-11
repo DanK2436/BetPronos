@@ -51,6 +51,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (error.contains('network') || error.contains('SocketException')) {
       return 'Pas de connexion internet. Vérifiez votre réseau.';
     }
+    if (error.contains('confirmation')) {
+      return 'Un email de confirmation vous a été envoyé. Veuillez confirmer avant de vous connecter.';
+    }
     return 'Une erreur est survenue. Veuillez réessayer.';
   }
 
@@ -61,7 +64,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final email = _emailController.text.trim();
 
     try {
-      final success = await authProvider.register(
+      // La méthode register lance une exception en cas d'échec
+      await authProvider.register(
         email,
         _passwordController.text,
         _usernameController.text.trim(),
@@ -69,26 +73,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      if (success) {
-        // Envoyer l'OTP avant de naviguer
-        await _otpService.sendOtp(email: email);
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => OtpScreen(
-              email: email,
-              otpService: _otpService,
-              isSignup: true,
-            ),
+      // Inscription réussie → envoyer OTP
+      await _otpService.sendOtp(email: email);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => OtpScreen(
+            email: email,
+            otpService: _otpService,
+            isSignup: true,
           ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text("Échec de l'inscription. Vérifiez vos informations."),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
+        ),
+      );
     } catch (e) {
       if (mounted) {
         final msg = _translateError(e.toString());
