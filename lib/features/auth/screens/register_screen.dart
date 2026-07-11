@@ -1,3 +1,4 @@
+// lib/features/auth/screens/register_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_colors.dart';
@@ -18,32 +19,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  // Suppression de tout ce qui concerne EmailOtpService
-
   String _translateError(String error) {
-    if (error.contains('Email rate limit exceeded') ||
-        error.contains('over_email_send_rate_limit')) {
-      return 'Trop de tentatives. Attendez quelques minutes avant de réessayer.';
-    }
     if (error.contains('already registered') ||
-        error.contains('already been registered') ||
         error.contains('User already registered')) {
-      return 'Cette adresse email est déjà utilisée. Essayez de vous connecter.';
+      return 'Cette adresse email est déjà utilisée.';
     }
     if (error.contains('Password should be at least')) {
       return 'Le mot de passe doit contenir au moins 6 caractères.';
     }
-    if (error.contains('Invalid email') || error.contains('invalid_email')) {
+    if (error.contains('Invalid email')) {
       return "L'adresse email n'est pas valide.";
     }
-    if (error.contains('Limite de 2 comptes')) {
-      return 'Limite atteinte : 2 comptes maximum par appareil.';
-    }
     if (error.contains('network') || error.contains('SocketException')) {
-      return 'Pas de connexion internet. Vérifiez votre réseau.';
-    }
-    if (error.contains('confirmation')) {
-      return 'Un email de confirmation vous a été envoyé. Veuillez confirmer avant de vous connecter.';
+      return 'Pas de connexion internet.';
     }
     return 'Une erreur est survenue. Veuillez réessayer.';
   }
@@ -55,7 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final email = _emailController.text.trim();
 
     try {
-      // Inscription sans OTP
+      // Inscription simple (pas d'OTP)
       await authProvider.register(
         email,
         _passwordController.text,
@@ -64,7 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      // ✅ Redirection directe vers Home
+      // ✅ Redirection directe vers Home après inscription
       Navigator.pushReplacementNamed(context, '/home');
     } catch (e) {
       if (mounted) {
