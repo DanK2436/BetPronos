@@ -4,7 +4,6 @@ import 'package:permission_handler/permission_handler.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../payment/services/shwary_service.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 class PremiumView extends StatefulWidget {
   const PremiumView({super.key});
@@ -59,7 +58,6 @@ class _PremiumViewState extends State<PremiumView> {
       return;
     }
 
-    // Request permissions before starting
     _requestNotificationPermission();
 
     setState(() {
@@ -71,17 +69,21 @@ class _PremiumViewState extends State<PremiumView> {
     final email = authProvider.user?.email ?? 'user@betpronos.com';
     final plan = _plans[_selectedPlanIndex];
     final reference = 'ref_${DateTime.now().millisecondsSinceEpoch}';
+    final operator = _selectedOperator;
+    final phoneNumber = _phoneController.text.trim();
+    final planName = plan['title'];
+    final price = plan['price'];
 
-    // Call Shwary Payment Service
-    final res = await _shwaryService.initializePayment(
+    // Envoi de la demande de push direct mobile money
+    final res = await _shwaryService.initializeDirectPayment(
       userId: userId,
       email: email,
-      amount: plan['price'].toDouble(),
-      currency: 'CDF', // Congolais Franc
+      amount: price.toDouble(),
+      currency: 'CDF',
       reference: reference,
-      operator: _selectedOperator,
-      phoneNumber: _phoneController.text.trim(),
-      planName: plan['title'],
+      operator: operator,
+      phoneNumber: phoneNumber,
+      planName: planName,
     );
 
     setState(() {
@@ -89,28 +91,154 @@ class _PremiumViewState extends State<PremiumView> {
     });
 
     if (res['success'] == true && mounted) {
-      final paymentUrl = res['payment_url'];
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ShwaryWebView(
-            paymentUrl: paymentUrl,
-            reference: reference,
-            operatorName: _selectedOperator,
-            phoneNumber: _phoneController.text,
-            amount: plan['price'],
-            planName: plan['title'],
-            onSuccess: () async {
-              await authProvider.makePremium();
-              if (mounted) {
-                // Simulate SMS sent notification
-                _showSuccessSMSDialog(context, plan['title'], plan['price']);
-              }
-            },
+      // Afficher le dialogue natif d'attente d'autorisation PIN
+      _showUssdPushWaitingDialog(context, reference, planName, price, operator, phoneNumber, authProvider);
+    } else {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Échec de la demande de paiement. Veuillez réessayer.'),
+            backgroundColor: AppColors.error,
           ),
-        ),
-      );
+        );
+      }
     }
+  }
+
+  void _showUssdPushWaitingDialog(
+    BuildContext context,
+    String reference,
+    String planName,
+    int price,
+    String operator,
+    String phoneNumber,
+    AuthProvider authProvider,
+  ) {
+    bool isCompleted = false;
+    int secondsRemaining = 60;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            
+            // Fonction de vérification d'état en boucle
+            void startPolling() async {
+              while (secondsRemaining > 0 && !isCompleted) {
+                await Future.delayed(const Duration(seconds: 3));
+                secondsRemaining -= 3;
+                
+                if (secondsRemaining <= 0 || isCompleted) break;
+                
+                final isPaid = await _shwaryService.verifyPaymentStatus(reference);
+                if (isPaid) {
+                  isCompleted = true;
+                  Navigator.of(dialogContext).pop(); // Fermer le dialogue de chargement
+                  await authProvider.makePremium();
+                  if (context.mounted) {
+                    _showSuccessSMSDialog(context, planName, price);
+                  }
+                  break;
+                }
+                
+                if (context.mounted) {
+                  setStateDialog(() {});
+                }
+              }
+              
+              if (!isCompleted && secondsRemaining <= 0) {
+                isCompleted = true;
+                Navigator.of(dialogContext).pop();
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Délai d\'autorisation du code PIN dépassé.'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              }
+            }
+
+            // Démarrer la boucle de vérification au premier build
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (secondsRemaining == 60) {
+                startPolling();
+              }
+            });
+
+            return AlertDialog(
+              backgroundColor: AppColors.surface,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: Color(0xFF2A2D4A), width: 1),
+              ),
+              title: Row(
+                children: [
+                  const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2.5),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    'Validation $operator',
+                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'Une demande de paiement de $price CDF a été envoyée sur votre téléphone ($phoneNumber).',
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    'Veuillez saisir votre code PIN secret sur le prompt USSD qui s\'affiche sur votre mobile pour valider.',
+                    style: TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Vérification en cours : ${secondsRemaining}s...',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 14),
+                  ),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () async {
+                      isCompleted = true;
+                      Navigator.of(dialogContext).pop();
+                      await authProvider.makePremium();
+                      if (context.mounted) {
+                        _showSuccessSMSDialog(context, planName, price);
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.success,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    child: const Text('Simuler Succès (Test)', style: TextStyle(fontSize: 12)),
+                  ),
+                  const SizedBox(height: 8),
+                  TextButton(
+                    onPressed: () {
+                      isCompleted = true;
+                      Navigator.of(dialogContext).pop();
+                    },
+                    child: const Text('Annuler', style: TextStyle(color: Colors.grey)),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
   }
 
   void _showSuccessSMSDialog(BuildContext context, String planTitle, int price) {
@@ -152,8 +280,7 @@ class _PremiumViewState extends State<PremiumView> {
         actions: [
           TextButton(
             onPressed: () {
-              Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Go back from webview
+              Navigator.pop(context); // Fermer le dialogue de succès
             },
             child: const Text('Génial', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
           ),
@@ -259,17 +386,17 @@ class _PremiumViewState extends State<PremiumView> {
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    plan['title'],
-                                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    plan['desc'],
-                                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                                  ),
-                                ],
+                                  children: [
+                                    Text(
+                                      plan['title'],
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      plan['desc'],
+                                      style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                                    ),
+                                  ],
                               ),
                             ),
                             Text(
@@ -289,7 +416,7 @@ class _PremiumViewState extends State<PremiumView> {
                 
                 const SizedBox(height: 24),
                 const Text(
-                  'Mode de Paiement (Shwary)',
+                  'Mode de Paiement (Shwary Direct)',
                   style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const SizedBox(height: 12),
@@ -389,73 +516,6 @@ class _PremiumViewState extends State<PremiumView> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class ShwaryWebView extends StatefulWidget {
-  final String paymentUrl;
-  final String reference;
-  final String operatorName;
-  final String phoneNumber;
-  final int amount;
-  final String planName;
-  final VoidCallback onSuccess;
-
-  const ShwaryWebView({
-    super.key,
-    required this.paymentUrl,
-    required this.reference,
-    required this.operatorName,
-    required this.phoneNumber,
-    required this.amount,
-    required this.planName,
-    required this.onSuccess,
-  });
-
-  @override
-  State<ShwaryWebView> createState() => _ShwaryWebViewState();
-}
-
-class _ShwaryWebViewState extends State<ShwaryWebView> {
-  late final WebViewController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onPageStarted: (String url) {
-            // Uniquement si l'URL contient des paramètres de succès (ex: callback de redirection de succès de paiement)
-            // et qu'il ne s'agit pas du chargement initial de pay
-            if ((url.contains('success') || url.contains('status=success')) && !url.contains('/pay?ref=')) {
-              Future.delayed(const Duration(seconds: 2), () {
-                if (mounted) {
-                  widget.onSuccess();
-                }
-              });
-            }
-          },
-        ),
-      )
-      ..loadRequest(Uri.parse(widget.paymentUrl));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Paiement ${widget.operatorName}'),
-        actions: [
-          TextButton(
-            onPressed: widget.onSuccess,
-            child: const Text('Simuler Succès', style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-      body: WebViewWidget(controller: _controller),
     );
   }
 }

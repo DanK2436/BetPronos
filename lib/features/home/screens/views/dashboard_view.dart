@@ -139,11 +139,38 @@ class DashboardView extends StatelessWidget {
                 SliverPadding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   sliver: SliverToBoxAdapter(
-                    child: _SectionHeader(
-                      icon: Icons.fiber_manual_record,
-                      iconColor: AppColors.error,
-                      title: 'En Direct',
-                      subtitle: '${matchProvider.liveMatches.length} match(s) en cours',
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _SectionHeader(
+                          icon: Icons.fiber_manual_record,
+                          iconColor: AppColors.error,
+                          title: 'En Direct',
+                          subtitle: '${matchProvider.liveMatches.length} match(s) en cours',
+                        ),
+                        if (matchProvider.isCheckingScores)
+                          const Row(
+                            children: [
+                              SizedBox(
+                                width: 10,
+                                height: 10,
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primary,
+                                  strokeWidth: 1.5,
+                                ),
+                              ),
+                              SizedBox(width: 6),
+                              Text(
+                                'Vérification IA...',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                      ],
                     ),
                   ),
                 ),
