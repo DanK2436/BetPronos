@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart'; // ✅ Import nécessaire pour User
 import '../services/auth_service.dart';
 
 // Modèles locaux
@@ -132,12 +133,12 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // ✅ Maintenant User est reconnu grâce à l'import supabase_flutter
   AppUser _mapAuthUserToAppUser(User authUser, {String? username}) {
-    // Ici, vous pouvez charger des informations supplémentaires depuis Firestore
     return AppUser(
       id: authUser.id,
       email: authUser.email ?? 'no-email',
-      isPremium: false, // à remplacer par la vraie valeur
+      isPremium: false,
       predictionsLeft: 3,
     );
   }
