@@ -1,34 +1,40 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
+import 'package:functions_client/functions_client.dart';
 
 class EmailOtpService {
-  final SupabaseClient _client = Supabase.instance.client;
+  final FunctionsClient _functionsClient;
 
-  /// Appelle une Edge Function Supabase nommée "send-otp"
-  /// qui envoie l'email OTP côté serveur (les secrets restent privés).
+  EmailOtpService(this._functionsClient);
+
+  // Envoi d'un OTP (utilisation de paramètres nommés)
   Future<void> sendOtp({required String email}) async {
-    final response = await _client.functions.invoke(
-      'send-otp',
-      body: jsonEncode({'email': email}),
-    );
-    if (response.status != 200) {
-      throw Exception('Erreur lors de l\'envoi du code OTP');
+    try {
+      final response = await _functionsClient.invoke(
+        functionName: 'sendOtp',
+        body: {'email': email},
+      );
+      // ✅ Correction : utiliser response.data au lieu de response.body
+      final data = response.data as Map<String, dynamic>? ?? {};
+      if (data['success'] != true) {
+        throw Exception('Erreur lors de l\'envoi de l\'OTP');
+      }
+    } catch (e) {
+      throw Exception('Échec de l\'envoi de l\'OTP: $e');
     }
   }
 
-  /// Vérifie l'OTP en appelant une seconde Edge Function "verify-otp".
-  Future<bool> verifyOtp({
-    required String email,
-    required String code,
-  }) async {
-    final response = await _client.functions.invoke(
-      'verify-otp',
-      body: jsonEncode({'email': email, 'code': code}),
-    );
-    if (response.status == 200) {
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+  // Vérification de l'OTP (méthode unique)
+  Future<bool> verifyOtp({required String email, required String code}) async {
+    try {
+      final response = await _functionsClient.invoke(
+        functionName: 'verifyOtp',
+        body: {'email': email, 'code': code},
+      );
+      // ✅ Utilisation de response.data
+      final data = response.data as Map<String, dynamic>? ?? {};
       return data['valid'] == true;
+    } catch (e) {
+      throw Exception('Échec de la vérification OTP: $e');
     }
-    return false;
   }
 }
