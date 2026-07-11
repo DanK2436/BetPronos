@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 import '../../../core/constants/app_colors.dart';
 import 'views/predictions_view.dart';
 import 'views/profile_view.dart';
@@ -22,9 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final user = authProvider.user;
-
+    // authProvider peut être utilisé pour des infos si besoin
     return Scaffold(
       body: _tabs[_currentIndex],
       bottomNavigationBar: BottomNavigationBar(
