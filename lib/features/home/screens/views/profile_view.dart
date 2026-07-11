@@ -1,3 +1,4 @@
+// lib/features/home/screens/views/profile_view.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -14,12 +15,19 @@ class ProfileView extends StatelessWidget {
     final profile = authProvider.profile;
     final isPremium = authProvider.isPremium;
 
-    final username = profile?['username'] ?? user?.email?.split('@').first ?? 'Utilisateur';
+    // ✅ Utilisation correcte des propriétés de l'objet UserProfile
+    final username = profile?.displayName ?? user?.email?.split('@').first ?? 'Utilisateur';
 
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('Mon Profil'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -31,7 +39,6 @@ class ProfileView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 24),
-              // User Avatar
               Center(
                 child: Container(
                   width: 100,
@@ -40,7 +47,9 @@ class ProfileView extends StatelessWidget {
                     shape: BoxShape.circle,
                     border: Border.all(color: AppColors.primary, width: 3),
                     image: DecorationImage(
-                      image: NetworkImage('https://api.dicebear.com/7.x/bottts/png?seed=$username'),
+                      image: NetworkImage(
+                        'https://api.dicebear.com/7.x/bottts/png?seed=$username',
+                      ),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -62,32 +71,47 @@ class ProfileView extends StatelessWidget {
                 style: const TextStyle(color: AppColors.textSecondary),
               ),
               const SizedBox(height: 32),
-              // Subscription status tile
               Card(
+                color: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: ListTile(
                   leading: const Icon(Icons.workspace_premium, color: AppColors.warning),
-                  title: const Text('Statut de l\'abonnement', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+                  title: const Text(
+                    'Statut de l\'abonnement',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
                   subtitle: Text(
                     isPremium ? 'Premium (Accès illimité)' : 'Gratuit (Accès limité)',
-                    style: TextStyle(color: isPremium ? AppColors.success : AppColors.textSecondary),
+                    style: TextStyle(
+                      color: isPremium ? AppColors.success : AppColors.textSecondary,
+                    ),
                   ),
-                  trailing: isPremium 
+                  trailing: isPremium
                       ? const Icon(Icons.check_circle, color: AppColors.success)
                       : const Icon(Icons.lock, color: AppColors.textMuted),
                 ),
               ),
               const SizedBox(height: 16),
-              // Account Settings mock tile
               Card(
+                color: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
                 child: ListTile(
                   leading: const Icon(Icons.settings, color: AppColors.textSecondary),
-                  title: const Text('Paramètres du compte', style: TextStyle(color: Colors.white)),
+                  title: const Text(
+                    'Paramètres du compte',
+                    style: TextStyle(color: Colors.white),
+                  ),
                   trailing: const Icon(Icons.chevron_right, color: AppColors.textSecondary),
-                  onTap: () {},
+                  onTap: () {
+                    // Navigation vers les paramètres (à implémenter)
+                  },
                 ),
               ),
               const Spacer(),
-              // Sign Out Button
               ElevatedButton.icon(
                 onPressed: () async {
                   await authProvider.logout();
