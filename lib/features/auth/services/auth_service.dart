@@ -19,33 +19,14 @@ class AuthService {
     try {
       final deviceId = await DeviceUtils.getDeviceId();
 
-      // Check account limits on this device
-      final existingAccounts = await _client
-          .from('profiles')
-          .select('id')
-          .eq('device_id', deviceId);
-
-      if (existingAccounts.length >= 2) {
-        throw Exception("Limite de 2 comptes par appareil atteinte.");
-      }
-
       final response = await _client.auth.signUp(
         email: email,
         password: password,
-        data: {'username': username},
-      );
-      
-      if (response.user != null) {
-        await _client.from('profiles').upsert({
-          'id': response.user!.id,
+        data: {
           'username': username,
-          'avatar_url': 'https://api.dicebear.com/7.x/bottts/svg?seed=$username',
-          'subscription_tier': 'free',
           'device_id': deviceId,
-          'prediction_count': 0,
-          'created_at': DateTime.now().toIso8601String(),
-        });
-      }
+        },
+      );
       
       return response;
     } catch (e) {

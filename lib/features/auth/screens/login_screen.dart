@@ -17,6 +17,28 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
+  /// Traduit les erreurs d'authentification en messages compréhensibles
+  String _translateError(String error) {
+    if (error.contains('Invalid login credentials') ||
+        error.contains('invalid_credentials')) {
+      return '❌ Email ou mot de passe incorrect. Vérifiez vos informations.';
+    }
+    if (error.contains('Email not confirmed')) {
+      return '📧 Votre email n\'est pas encore confirmé. Vérifiez votre boîte mail.';
+    }
+    if (error.contains('Too many requests') ||
+        error.contains('over_request_rate_limit')) {
+      return '⏱ Trop de tentatives. Attendez quelques minutes avant de réessayer.';
+    }
+    if (error.contains('User not found')) {
+      return '❌ Aucun compte trouvé avec cet email. Inscrivez-vous d\'abord.';
+    }
+    if (error.contains('network') || error.contains('SocketException')) {
+      return '📵 Pas de connexion internet. Vérifiez votre réseau.';
+    }
+    return '❌ Une erreur est survenue. Réessayez dans quelques instants.';
+  }
+
   void _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -35,8 +57,10 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Erreur: ${e.toString()}'),
+            content: Text(_translateError(e.toString())),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 5),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }

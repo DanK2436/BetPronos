@@ -27,5 +27,5 @@ class ApiConstants {
 
   // Payment (Shwary)
   static const String shwaryApiKey = "shwary_bddffc43-02a9-455d-9c2c-09928ac539cd";
-  static const String shwaryBaseUrl = "https://api.shwary.com/v1"; // Custom/Standard REST endpoints for Shwary
+  static const String shwaryBaseUrl = "https://api.shwary.com/v1";
 }
