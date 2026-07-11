@@ -52,7 +52,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final email = _emailController.text.trim();
 
     try {
-      final success = await authProvider.register(
+      await authProvider.register(
         email,
         _passwordController.text,
         _usernameController.text.trim(),
@@ -60,17 +60,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       if (!mounted) return;
 
-      if (success) {
-        // Redirection directe vers le compte (HomeScreen) sans passer par l'OTP
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-          (route) => false,
-        );
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('✅ Inscription réussie ! Bienvenue sur betPronos !'),
-          backgroundColor: AppColors.success,
-        ));
-      }
+      // Redirection directe vers le compte (HomeScreen) sans passer par l'OTP
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        (route) => false,
+      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('✅ Inscription réussie ! Bienvenue sur betPronos !'),
+        backgroundColor: AppColors.success,
+      ));
     } catch (e) {
       if (mounted) {
         final msg = _translateError(e.toString());
