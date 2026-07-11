@@ -438,9 +438,9 @@ class _PremiumViewState extends State<PremiumView> {
                   ),
 
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'ℹ️ Le numéro doit correspondre à votre compte $_selectedOperator.\nLe format +243 est appliqué automatiquement.',
-                    style: TextStyle(color: AppColors.textMuted, fontSize: 11, height: 1.5),
+                    style: const TextStyle(color: AppColors.textMuted, fontSize: 11, height: 1.5),
                   ),
 
                   const SizedBox(height: 28),
