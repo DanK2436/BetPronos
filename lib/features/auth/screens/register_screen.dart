@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-<<<<<<< HEAD
 import '../../../core/constants/app_colors.dart';
+import '../providers/auth_provider.dart';
 import '../../home/screens/home_screen.dart';
 import 'login_screen.dart';
-=======
-import '../../home/screens/home_screen.dart';
->>>>>>> de88f16 (Suppression OTP, recherche matchs par IA et config paiement Shwary)
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -21,25 +17,30 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-<<<<<<< HEAD
   bool _obscurePassword = true;
 
-=======
-
   /// Traduit les erreurs techniques en messages clairs pour l'utilisateur
->>>>>>> de88f16 (Suppression OTP, recherche matchs par IA et config paiement Shwary)
   String _translateError(String error) {
-    if (error.contains('already registered')) {
-      return 'Cette adresse email est déjà utilisée.';
+    if (error.contains('Email rate limit exceeded') ||
+        error.contains('over_email_send_rate_limit')) {
+      return 'Trop de tentatives. Attendez quelques minutes avant de réessayer.';
+    }
+    if (error.contains('already registered') ||
+        error.contains('already been registered') ||
+        error.contains('User already registered')) {
+      return 'Cette adresse email est déjà utilisée. Essayez de vous connecter.';
     }
     if (error.contains('Password should be at least')) {
       return 'Le mot de passe doit contenir au moins 6 caractères.';
     }
-    if (error.contains('Invalid email')) {
+    if (error.contains('Invalid email') || error.contains('invalid_email')) {
       return "L'adresse email n'est pas valide.";
     }
-    if (error.contains('network')) {
-      return 'Pas de connexion internet.';
+    if (error.contains('Limite de 2 comptes')) {
+      return 'Limite atteinte : 2 comptes maximum par appareil.';
+    }
+    if (error.contains('network') || error.contains('SocketException')) {
+      return '📵 Pas de connexion internet. Vérifiez votre réseau.';
     }
     return 'Une erreur est survenue lors de l\'inscription. Veuillez réessayer.';
   }
@@ -48,23 +49,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (!_formKey.currentState!.validate()) return;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final email = _emailController.text.trim();
 
     try {
-<<<<<<< HEAD
-      await authProvider.register(
-        _emailController.text.trim(),
-=======
       final success = await authProvider.register(
         email,
->>>>>>> de88f16 (Suppression OTP, recherche matchs par IA et config paiement Shwary)
         _passwordController.text,
         _usernameController.text.trim(),
       );
 
       if (!mounted) return;
-<<<<<<< HEAD
-      Navigator.pushReplacementNamed(context, '/home');
-=======
 
       if (success) {
         // Redirection directe vers le compte (HomeScreen) sans passer par l'OTP
@@ -77,170 +71,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
           backgroundColor: AppColors.success,
         ));
       }
->>>>>>> de88f16 (Suppression OTP, recherche matchs par IA et config paiement Shwary)
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(_translateError(e.toString())),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        final msg = _translateError(e.toString());
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(msg),
+          backgroundColor: AppColors.error,
+          duration: const Duration(seconds: 5),
+          behavior: SnackBarBehavior.floating,
+        ));
       }
     }
   }
 
   @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+
     return Scaffold(
-<<<<<<< HEAD
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 40),
-                const Icon(
-                  Icons.person_add,
-                  size: 60,
-                  color: AppColors.primary,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Créer un compte',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Rejoignez BetPronos et accédez aux prédictions IA',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AppColors.textSecondary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      children: [
-                        TextFormField(
-                          controller: _usernameController,
-                          decoration: const InputDecoration(
-                            labelText: 'Nom d\'utilisateur',
-                            prefixIcon: Icon(Icons.person_outlined),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Veuillez entrer un nom d\'utilisateur';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          decoration: const InputDecoration(
-                            labelText: 'Email',
-                            prefixIcon: Icon(Icons.email_outlined),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return 'Veuillez entrer votre email';
-                            }
-                            if (!value.contains('@')) {
-                              return 'Email invalide';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _passwordController,
-                          obscureText: _obscurePassword,
-                          decoration: InputDecoration(
-                            labelText: 'Mot de passe',
-                            prefixIcon: const Icon(Icons.lock_outlined),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _obscurePassword
-                                    ? Icons.visibility_outlined
-                                    : Icons.visibility_off_outlined,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _obscurePassword = !_obscurePassword;
-                                });
-                              },
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Veuillez entrer un mot de passe';
-                            }
-                            if (value.length < 6) {
-                              return 'Minimum 6 caractères';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                        ElevatedButton(
-                          onPressed: authProvider.isLoading ? null : _submit,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            minimumSize: const Size(double.infinity, 50),
-                          ),
-                          child: authProvider.isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text(
-                                  'S\'inscrire',
-                                  style: TextStyle(fontSize: 16),
-                                ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'Déjà un compte ?',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const LoginScreen(),
-                          ),
-                        );
-                      },
-                      child: const Text('Se connecter'),
-=======
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -297,11 +153,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           : null,
                     ),
                     const SizedBox(height: 16),
-                    _buildField(
+                    TextFormField(
                       controller: _passwordController,
-                      label: 'Mot de passe',
-                      icon: Icons.lock,
-                      obscureText: true,
+                      obscureText: _obscurePassword,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Mot de passe',
+                        labelStyle: const TextStyle(color: AppColors.textSecondary),
+                        filled: true,
+                        fillColor: AppColors.surface,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Color(0xFF23263D)),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppColors.primary),
+                        ),
+                        prefixIcon: const Icon(Icons.lock, color: AppColors.textSecondary),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            color: AppColors.textSecondary,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _obscurePassword = !_obscurePassword;
+                            });
+                          },
+                        ),
+                      ),
                       validator: (v) => v == null || v.length < 6
                           ? 'Au moins 6 caractères requis'
                           : null,
@@ -321,16 +204,67 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           : const Text("S'inscrire",
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold)),
->>>>>>> de88f16 (Suppression OTP, recherche matchs par IA et config paiement Shwary)
+                    ),
+                    const SizedBox(height: 24),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          'Déjà un compte ?',
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const LoginScreen(),
+                              ),
+                            );
+                          },
+                          child: const Text('Se connecter', style: TextStyle(color: AppColors.primary)),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 24),
-              ],
+              ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: AppColors.textSecondary),
+        filled: true,
+        fillColor: AppColors.surface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Color(0xFF23263D)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: AppColors.primary),
+        ),
+        prefixIcon: Icon(icon, color: AppColors.textSecondary),
+      ),
+      validator: validator,
     );
   }
 }
