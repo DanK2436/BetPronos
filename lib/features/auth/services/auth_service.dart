@@ -1,92 +1,60 @@
-import 'package:flutter/foundation.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/utils/device_utils.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
-  final SupabaseClient _client = Supabase.instance.client;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  User? get currentUser => _client.auth.currentUser;
-
-  Session? get currentSession => _client.auth.currentSession;
-
-  Stream<AuthState> get authStateChanges => _client.auth.onAuthStateChange;
-
-  Future<AuthResponse> signUp({
-    required String email,
-    required String password,
-    required String username,
-  }) async {
-    try {
-      final deviceId = await DeviceUtils.getDeviceId();
-
-      final response = await _client.auth.signUp(
-        email: email,
-        password: password,
-        data: {
-          'username': username,
-          'device_id': deviceId,
-        },
-      );
-      
-      return response;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  Future<AuthResponse> signIn({
+  /// Connecte l'utilisateur avec email et mot de passe.
+  /// Retourne les credentials de l'utilisateur connecté.
+  /// Lance une [FirebaseAuthException] en cas d'échec (mauvais identifiants, etc.).
+  Future<UserCredential> signInWithEmailAndPassword({
     required String email,
     required String password,
   }) async {
-    try {
-      return await _client.auth.signInWithPassword(
-        email: email,
-        password: password,
-      );
-    } catch (e) {
-      rethrow;
-    }
+    // Utilisation des paramètres fournis, plus de valeurs codées en dur !
+    return await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
   }
 
+  /// Crée un nouvel utilisateur avec email et mot de passe.
+  /// Retourne les credentials du nouvel utilisateur.
+  /// Lance une [FirebaseAuthException] en cas d'erreur (email déjà utilisé, mot de passe faible…).
+  Future<UserCredential> createUserWithEmailAndPassword({
+    required String email,
+    required String password,
+  }) async {
+    return await _auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+  }
+
+  /// Déconnecte l'utilisateur actuel.
   Future<void> signOut() async {
-    await _client.auth.signOut();
+    await _auth.signOut();
   }
 
-  Future<Map<String, dynamic>?> getUserProfile(String userId) async {
-    try {
-      final data = await _client
-          .from('profiles')
-          .select()
-          .eq('id', userId)
-          .maybeSingle();
-      return data;
-    } catch (e) {
-      return null;
+  /// Envoie un email de réinitialisation de mot de passe.
+  /// Lance une [FirebaseAuthException] si l'adresse email n'existe pas, etc.
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    await _auth.sendPasswordResetEmail(email: email);
+  }
+
+  /// Envoie un email de vérification à l'utilisateur actuellement connecté.
+  /// Ne fait rien si aucun utilisateur n'est connecté.
+  Future<void> sendEmailVerification() async {
+    final user = _auth.currentUser;
+    if (user != null && !user.emailVerified) {
+      await user.sendEmailVerification();
     }
   }
 
-  Future<void> incrementPredictionCount(String userId) async {
-    try {
-      final profile = await getUserProfile(userId);
-      if (profile != null) {
-        final currentCount = profile['prediction_count'] ?? 0;
-        await _client.from('profiles').update({
-          'prediction_count': currentCount + 1,
-        }).eq('id', userId);
-      }
-    } catch (e) {
-      debugPrint('Failed to increment prediction count: $e');
-    }
+  /// Retourne l'utilisateur actuellement connecté, ou `null` si personne ne l'est.
+  User? getCurrentUser() {
+    return _auth.currentUser;
   }
 
-  Future<void> updateUserSubscription(String userId, String tier) async {
-    try {
-      await _client.from('profiles').update({
-        'subscription_tier': tier,
-        'prediction_count': 0, // Reset count on subscription
-      }).eq('id', userId);
-    } catch (e) {
-      rethrow;
-    }
-  }
+  /// (Optionnel) Écoute les changements d'état d'authentification en temps réel.
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 }
