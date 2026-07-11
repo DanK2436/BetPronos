@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/constants/api_constants.dart';
 import 'core/constants/app_theme.dart';
 import 'features/auth/providers/auth_provider.dart';
+import 'features/auth/services/auth_service.dart';
 import 'features/auth/screens/splash_screen.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/matches/providers/match_provider.dart';
@@ -27,7 +28,7 @@ class BetPronosApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider(AuthService())),
         ChangeNotifierProvider(create: (_) => MatchProvider()),
         ChangeNotifierProvider(create: (_) => PredictionProvider()),
       ],
