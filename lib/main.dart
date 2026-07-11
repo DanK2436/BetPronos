@@ -16,26 +16,26 @@ void main() async {
     url: ApiConstants.supabaseUrl,
     anonKey: ApiConstants.supabaseAnonKey,
   );
-
-  runApp(const BetPronosApp());
+  runApp(MyApp());
 }
 
-class BetPronosApp extends StatelessWidget {
-  const BetPronosApp({super.key});
-
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => MatchProvider()),
-        ChangeNotifierProvider(create: (_) => PredictionProvider()),
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(AuthService()), // ✅ fournir AuthService
+        ),
       ],
       child: MaterialApp(
-        title: 'betPronos',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
-        home: const SplashScreen(),
+        title: 'BetPronos',
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const SplashScreen(), // à adapter
+          '/login': (context) => const LoginScreen(),
+          '/home': (context) => const HomeScreen(),
+        },
       ),
     );
   }
