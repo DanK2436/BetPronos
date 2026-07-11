@@ -1,28 +1,34 @@
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:convert';
 
 class EmailOtpService {
-  final FirebaseFunctions _functions = FirebaseFunctions.instance;
+  final SupabaseClient _client = Supabase.instance.client;
 
-  /// Demande l'envoi d'un OTP à l'adresse email fournie.
-  /// Appelle une Cloud Function qui gère l'envoi et le stockage côté serveur.
+  /// Appelle une Edge Function Supabase nommée "send-otp"
+  /// qui envoie l'email OTP côté serveur (les secrets restent privés).
   Future<void> sendOtp({required String email}) async {
-    final callable = _functions.httpsCallable('sendOtp');
-    await callable.call(<String, dynamic>{
-      'email': email,
-    });
+    final response = await _client.functions.invoke(
+      'send-otp',
+      body: jsonEncode({'email': email}),
+    );
+    if (response.status != 200) {
+      throw Exception('Erreur lors de l\'envoi du code OTP');
+    }
   }
 
-  /// Vérifie l'OTP saisi par l'utilisateur en interrogeant le serveur.
-  /// Retourne `true` si le code est valide et non expiré.
+  /// Vérifie l'OTP en appelant une seconde Edge Function "verify-otp".
   Future<bool> verifyOtp({
     required String email,
     required String code,
   }) async {
-    final callable = _functions.httpsCallable('verifyOtp');
-    final result = await callable.call(<String, dynamic>{
-      'email': email,
-      'code': code,
-    });
-    return result.data['valid'] as bool;
+    final response = await _client.functions.invoke(
+      'verify-otp',
+      body: jsonEncode({'email': email, 'code': code}),
+    );
+    if (response.status == 200) {
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      return data['valid'] == true;
+    }
+    return false;
   }
 }
