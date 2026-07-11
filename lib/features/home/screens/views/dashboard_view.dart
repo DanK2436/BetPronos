@@ -14,7 +14,7 @@ class DashboardView extends StatelessWidget {
   Widget build(BuildContext context) {
     final matchProvider = Provider.of<MatchProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    final username = authProvider.profile?['username'] ?? 'Champion';
+    final username = authProvider.profile?.displayName ?? 'Champion';
 
     return Scaffold(
       backgroundColor: AppColors.background,

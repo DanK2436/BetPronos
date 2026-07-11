@@ -35,6 +35,9 @@ class ApiConstants {
   static const String deepseekKey = "sk-cd585bad3c394bf4a28f87301e1c0e35";
   static const String deepseekBaseUrl = "https://api.deepseek.com/chat/completions";
 
+  // OpenAI
+  static const String openAiKey = "sk-M0A20DXFHbwSr11LNih5hwcUt57RLZ8wCnIsjbBGrKyfBKjq";
+
   // Perplexity (recherche web native — fallback football)
   static const String perplexityKey = "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";
   static const String perplexityBaseUrl = "https://api.perplexity.ai/chat/completions";

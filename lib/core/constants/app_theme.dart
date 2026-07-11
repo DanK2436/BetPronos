@@ -90,7 +90,7 @@ class AppTheme {
               const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         ),
         // Cartes
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: AppColors.surface,
           elevation: 0,
           shape: RoundedRectangleBorder(
@@ -135,7 +135,7 @@ class AppTheme {
           ),
         ),
         // TabBar
-        tabBarTheme: const TabBarTheme(
+        tabBarTheme: const TabBarThemeData(
           labelColor: AppColors.primary,
           unselectedLabelColor: AppColors.textSecondary,
           indicatorColor: AppColors.primary,

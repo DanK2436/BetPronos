@@ -25,11 +25,11 @@ class AppColors {
   static const Color warning = Color(0xFFF59E0B);       // Ambre
   static const Color info = Color(0xFF3B82F6);          // Bleu
 
-  // ─── Agents IA ───
-  static const Color agentGemini = Color(0xFF4285F4);   // Bleu Google
-  static const Color agentOpenAI = Color(0xFF10B981);   // Vert émeraude
-  static const Color agentMistral = Color(0xFFFF7A00);  // Orange Mistral
-  static const Color agentDeepSeek = Color(0xFF6366F1); // Indigo
+  // ─── Agents IA (Noms requis par prediction_screen.dart) ───
+  static const Color geminiColor = Color(0xFF4285F4);   // Bleu Google
+  static const Color openaiColor = Color(0xFF10B981);   // Vert émeraude
+  static const Color mistralColor = Color(0xFFFF7A00);  // Orange Mistral
+  static const Color deepseekColor = Color(0xFF6366F1); // Indigo
   static const Color agentGrok = Color(0xFF000000);     // Noir Grok
   static const Color agentPerplexity = Color(0xFF20B2AA);// Turquoise
 

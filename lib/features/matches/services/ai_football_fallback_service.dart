@@ -187,13 +187,16 @@ Le status doit être : "live", "scheduled", ou "finished".
       final homeName = map['homeTeam']?['name'] ?? 'Équipe A';
       final awayName = map['awayTeam']?['name'] ?? 'Équipe B';
       
-      if (map['homeTeam']?['logo'] == null || map['homeTeam']?['logo'].toString().isEmpty) {
+      final homeLogo = map['homeTeam']?['logo'];
+      if (homeLogo == null || homeLogo.toString().isEmpty) {
         map['homeTeam']['logo'] = 'https://api.dicebear.com/7.x/identicon/png?seed=${Uri.encodeComponent(homeName)}';
       }
-      if (map['awayTeam']?['logo'] == null || map['awayTeam']?['logo'].toString().isEmpty) {
+      final awayLogo = map['awayTeam']?['logo'];
+      if (awayLogo == null || awayLogo.toString().isEmpty) {
         map['awayTeam']['logo'] = 'https://api.dicebear.com/7.x/identicon/png?seed=${Uri.encodeComponent(awayName)}';
       }
-      if (map['league']?['logo'] == null || map['league']?['logo'].toString().isEmpty) {
+      final leagueLogo = map['league']?['logo'];
+      if (leagueLogo == null || leagueLogo.toString().isEmpty) {
         map['league']['logo'] = 'https://api.dicebear.com/7.x/initials/png?seed=${Uri.encodeComponent(map['league']?['name'] ?? 'L')}';
       }
 
