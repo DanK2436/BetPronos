@@ -1,80 +1,148 @@
 import 'package:flutter/material.dart';
 import 'package:betpronos/features/auth/services/auth_service.dart';
-import 'package:betpronos/features/auth/models/user_profile.dart'; // Assurez-vous que le modèle existe
+
+// Modèle utilisateur minimal (remplacez par votre vrai User si existant)
+class AppUser {
+  final String id;
+  final String email;
+  final bool isPremium;
+  final int predictionsLeft;
+  AppUser({required this.id, required this.email, this.isPremium = false, this.predictionsLeft = 3});
+}
+
+// Modèle de profil (similaire)
+class UserProfile {
+  final String userId;
+  final String displayName;
+  UserProfile({required this.userId, required this.displayName});
+}
 
 class AuthProvider extends ChangeNotifier {
   final AuthService _authService;
-  User? _user;
+  AppUser? _user;
   UserProfile? _profile;
+  bool _isLoading = false;
 
   AuthProvider(this._authService) {
-    _user = _authService.getCurrentUser(); // ✅ Utilisation correcte
-  }
-
-  User? get user => _user;
-  UserProfile? get profile => _profile;
-
-  // Charge le profil utilisateur (méthode à implémenter dans AuthService si nécessaire)
-  Future<void> loadUserProfile(String userId) async {
-    try {
-      // Si la méthode getUserProfile n'existe pas encore, on peut commenter ou simuler
-      // _profile = await _authService.getUserProfile(userId);
-      // Pour l'instant, on garde un placeholder
-      _profile = null; // ou récupérer depuis Firestore directement
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Erreur lors du chargement du profil: $e');
+    // Récupérer l'utilisateur courant si déjà connecté
+    final currentUser = _authService.getCurrentUser();
+    if (currentUser != null) {
+      _user = _mapAuthUserToAppUser(currentUser);
+      _loadProfile();
     }
   }
 
-  // Connexion - utilise la méthode correcte
-  Future<void> signIn({required String email, required String password}) async {
+  // Getters publics
+  AppUser? get user => _user;
+  UserProfile? get profile => _profile;
+  bool get isLoading => _isLoading;
+  bool get isAuthenticated => _user != null;
+  bool get isPremium => _user?.isPremium ?? false;
+  int get predictionsLeft => _user?.predictionsLeft ?? 0;
+  bool get canAccessPredictions => _user?.predictionsLeft ?? 0 > 0;
+
+  // Connexion
+  Future<bool> login(String email, String password) async {
+    _setLoading(true);
     try {
       await _authService.signInWithEmailAndPassword(email: email, password: password);
-      _user = _authService.getCurrentUser();
-      notifyListeners();
+      final authUser = _authService.getCurrentUser();
+      if (authUser != null) {
+        _user = _mapAuthUserToAppUser(authUser);
+        await _loadProfile();
+        _setLoading(false);
+        return true;
+      }
+      return false;
     } catch (e) {
-      debugPrint('Erreur de connexion: $e');
-      rethrow;
+      _setLoading(false);
+      return false;
     }
   }
 
-  // Inscription - utilise la méthode correcte
-  Future<void> signUp({required String email, required String password, required String username}) async {
+  // Inscription
+  Future<bool> register(String email, String password, String username) async {
+    _setLoading(true);
     try {
       await _authService.createUserWithEmailAndPassword(email: email, password: password);
-      _user = _authService.getCurrentUser();
-      // Si vous voulez stocker le username, faites-le dans une collection séparée
-      notifyListeners();
+      final authUser = _authService.getCurrentUser();
+      if (authUser != null) {
+        _user = _mapAuthUserToAppUser(authUser, username: username);
+        // Vous pouvez enregistrer le username dans Firestore ici
+        await _loadProfile();
+        _setLoading(false);
+        return true;
+      }
+      return false;
     } catch (e) {
-      debugPrint('Erreur d\'inscription: $e');
-      rethrow;
+      _setLoading(false);
+      return false;
     }
   }
 
   // Déconnexion
-  Future<void> signOut() async {
-    try {
-      await _authService.signOut();
-      _user = null;
-      _profile = null;
-      notifyListeners();
-    } catch (e) {
-      debugPrint('Erreur de déconnexion: $e');
-      rethrow;
+  Future<void> logout() async {
+    await _authService.signOut();
+    _user = null;
+    _profile = null;
+    notifyListeners();
+  }
+
+  // Devenir premium (simulation)
+  Future<void> makePremium() async {
+    if (_user == null) return;
+    // Appel à votre backend pour mettre à jour l'abonnement
+    // await _authService.updateUserSubscription(_user!.id, 'premium');
+    _user = AppUser(
+      id: _user!.id,
+      email: _user!.email,
+      isPremium: true,
+      predictionsLeft: 999,
+    );
+    notifyListeners();
+  }
+
+  // Utiliser une prédiction
+  Future<void> usePrediction() async {
+    if (_user == null || _user!.predictionsLeft <= 0) return;
+    // Décrémenter le compteur (appel API)
+    // await _authService.incrementPredictionCount(_user!.id); // ou décrémenter
+    _user = AppUser(
+      id: _user!.id,
+      email: _user!.email,
+      isPremium: _user!.isPremium,
+      predictionsLeft: _user!.predictionsLeft - 1,
+    );
+    notifyListeners();
+  }
+
+  // --- Méthodes privées ---
+
+  void _setLoading(bool loading) {
+    _isLoading = loading;
+    notifyListeners();
+  }
+
+  Future<void> _loadProfile() async {
+    // Simulation de chargement de profil
+    if (_user != null) {
+      _profile = UserProfile(
+        userId: _user!.id,
+        displayName: _user!.email.split('@').first,
+      );
     }
+    notifyListeners();
   }
 
-  // Incrémenter le compteur de pronostics (méthode à ajouter si nécessaire)
-  Future<void> incrementPredictionCount(String userId) async {
-    // Si la méthode n'existe pas, on peut ignorer ou implémenter plus tard
-    // await _authService.incrementPredictionCount(userId);
-    // Pour l'instant, on ne fait rien
-  }
-
-  // Mise à jour de l'abonnement (à ajouter si nécessaire)
-  Future<void> updateUserSubscription(String userId, String plan) async {
-    // await _authService.updateUserSubscription(userId, plan);
-    // Pour l'instant, on ne fait rien
+  // Fonction de mapping (à adapter selon votre AuthService)
+  AppUser _mapAuthUserToAppUser(dynamic authUser, {String? username}) {
+    // Si AuthService retourne un User de Supabase, utilisez ses champs
+    // Ici je suppose que authUser a un 'id' et un 'email'
+    return AppUser(
+      id: authUser.id ?? 'unknown',
+      email: authUser.email ?? 'no-email',
+      isPremium: false, // à récupérer depuis Firestore
+      predictionsLeft: 3, // idem
+    );
   }
 }
