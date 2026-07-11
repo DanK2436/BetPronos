@@ -23,13 +23,19 @@ class _SplashScreenState extends State<SplashScreen> {
 
   Future<void> _checkAuth() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    await Future.delayed(const Duration(seconds: 1));
+    // Attendre 2 secondes pour afficher le logo
+    await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
 
-    if (authProvider.user != null) {
-      Navigator.pushReplacementNamed(context, '/home');
+    // Navigation propre via MaterialPageRoute pour éviter les exceptions de routes nommées
+    if (authProvider.isAuthenticated) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
     } else {
-      Navigator.pushReplacementNamed(context, '/login');
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
     }
   }
 
@@ -38,50 +44,60 @@ class _SplashScreenState extends State<SplashScreen> {
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.primary, AppColors.primaryDark],
-          ),
+          gradient: AppColors.backgroundGradient,
         ),
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Logo officiel de l'application
               Container(
-                width: 100,
-                height: 100,
+                width: 120,
+                height: 120,
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withOpacity(0.05),
                   shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.3),
+                    width: 2,
+                  ),
                 ),
-                child: const Icon(
-                  Icons.sports_soccer,
-                  size: 60,
-                  color: Colors.white,
+                child: ClipOval(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      fit: const BoxFit.contain,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
               const Text(
-                'BetPronos',
+                'betPronos',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 32,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
-                'Prédictions IA pour le football',
+                'Analyses de football par agents IA',
                 style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                  fontSize: 15,
                 ),
               ),
-              const SizedBox(height: 40),
-              const CircularProgressIndicator(
-                color: Colors.white,
-                strokeWidth: 3,
+              const SizedBox(height: 48),
+              const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: AppColors.primary,
+                  strokeWidth: 2.5,
+                ),
               ),
             ],
           ),
