@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
 import '../providers/auth_provider.dart';
-import 'onboarding_screen.dart';
+import 'login_screen.dart';
 import '../../home/screens/home_screen.dart';
+import '../../../core/constants/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -17,23 +16,20 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToNext();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAuth();
+    });
   }
 
-  void _navigateToNext() async {
-    await Future.delayed(const Duration(milliseconds: 3000));
-    if (!mounted) return;
-    
+  Future<void> _checkAuth() async {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    
-    if (authProvider.isAuthenticated) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+    await Future.delayed(const Duration(seconds: 1));
+    if (!mounted) return;
+
+    if (authProvider.user != null) {
+      Navigator.pushReplacementNamed(context, '/home');
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const OnboardingScreen()),
-      );
+      Navigator.pushReplacementNamed(context, '/login');
     }
   }
 
@@ -48,18 +44,17 @@ class _SplashScreenState extends State<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Image.asset(
-                'assets/images/logo.png',
-                width: 180,
-                height: 180,
-              )
-                  .animate()
-                  .fade(duration: 800.ms)
-                  .scale(delay: 200.ms, duration: 600.ms, curve: Curves.easeOutBack),
-              const SizedBox(height: 24),
-              const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ).animate().fade(delay: 1000.ms, duration: 500.ms),
+              const Icon(Icons.sports_soccer, size: 80, color: Colors.white),
+              const SizedBox(height: 20),
+              const CircularProgressIndicator(color: AppColors.primary),
+              const SizedBox(height: 20),
+              Text(
+                'BetPronos',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+              ),
             ],
           ),
         ),
