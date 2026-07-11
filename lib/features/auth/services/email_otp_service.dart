@@ -6,14 +6,12 @@ class EmailOtpService {
 
   EmailOtpService(this._functionsClient);
 
-  // Envoi d'un OTP (utilisation de paramètres nommés)
   Future<void> sendOtp({required String email}) async {
     try {
       final response = await _functionsClient.invoke(
-        functionName: 'sendOtp',
+        'sendOtp', // ✅ nom de la fonction en premier argument positionnel
         body: {'email': email},
       );
-      // ✅ Correction : utiliser response.data au lieu de response.body
       final data = response.data as Map<String, dynamic>? ?? {};
       if (data['success'] != true) {
         throw Exception('Erreur lors de l\'envoi de l\'OTP');
@@ -23,14 +21,12 @@ class EmailOtpService {
     }
   }
 
-  // Vérification de l'OTP (méthode unique)
   Future<bool> verifyOtp({required String email, required String code}) async {
     try {
       final response = await _functionsClient.invoke(
-        functionName: 'verifyOtp',
+        'verifyOtp', // ✅ idem
         body: {'email': email, 'code': code},
       );
-      // ✅ Utilisation de response.data
       final data = response.data as Map<String, dynamic>? ?? {};
       return data['valid'] == true;
     } catch (e) {
