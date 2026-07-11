@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
-import '../../auth/providers/auth_provider.dart';
+import 'package:betpronos/core/constants/app_colors.dart';
+import 'package:betpronos/features/auth/providers/auth_provider.dart';
 
 class PredictionsView extends StatelessWidget {
   const PredictionsView({super.key});
@@ -45,6 +45,7 @@ class PredictionsView extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          // Carte match 1
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -67,15 +68,15 @@ class PredictionsView extends StatelessWidget {
                       const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
+                        children: const [
+                          Text(
                             'Match du jour',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
-                          const Text(
+                          Text(
                             'Ligue 1 - Journée 10',
                             style: TextStyle(
                               color: AppColors.textSecondary,
@@ -192,6 +193,7 @@ class PredictionsView extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
+          // Carte match 2
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -214,15 +216,15 @@ class PredictionsView extends StatelessWidget {
                       const SizedBox(width: 12),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
+                        children: const [
+                          Text(
                             'Match de demain',
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
-                          const Text(
+                          Text(
                             'Premier League - Journée 11',
                             style: TextStyle(
                               color: AppColors.textSecondary,
