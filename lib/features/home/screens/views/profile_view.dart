@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/screens/login_screen.dart';
+import 'premium_view.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
