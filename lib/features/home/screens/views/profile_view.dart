@@ -5,8 +5,16 @@ import '../../../auth/providers/auth_provider.dart';
 import '../../../auth/screens/login_screen.dart';
 import 'premium_view.dart';
 
-class ProfileView extends StatelessWidget {
+class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
+
+  @override
+  State<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<ProfileView> {
+  bool _notificationsEnabled = true;
+  bool _darkThemeEnabled = true;
 
   @override
   Widget build(BuildContext context) {
@@ -15,125 +23,133 @@ class ProfileView extends StatelessWidget {
     final isPremium = authProvider.isPremium;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Profil'),
-        backgroundColor: Colors.transparent,
+        title: const Text('Profil', style: TextStyle(color: AppColors.textPrimary)),
+        backgroundColor: AppColors.surface,
+        elevation: 0,
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundColor: AppColors.primary.withOpacity(0.1),
-                      child: const Icon(
-                        Icons.person,
-                        size: 40,
-                        color: AppColors.primary,
-                      ),
+            // User Card
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 40,
+                    backgroundColor: AppColors.primary.withOpacity(0.1),
+                    child: const Icon(Icons.person, size: 40, color: AppColors.primary),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    user?.email.split('@').first ?? 'Utilisateur',
+                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    user?.email ?? 'email@exemple.com',
+                    style: const TextStyle(color: AppColors.textSecondary),
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isPremium ? AppColors.success.withOpacity(0.1) : AppColors.warning.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    const SizedBox(height: 12),
-                    Text(
-                      user?.email?.split('@').first ?? 'Utilisateur',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      user?.email ?? 'email@exemple.com',
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: isPremium
-                            ? AppColors.success.withOpacity(0.1)
-                            : AppColors.warning.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            isPremium ? Icons.check_circle : Icons.lock,
-                            size: 16,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isPremium ? Icons.verified : Icons.lock_outline,
+                          size: 16,
+                          color: isPremium ? AppColors.success : AppColors.warning,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isPremium ? 'Abonnement Premium' : 'Compte Gratuit',
+                          style: TextStyle(
                             color: isPremium ? AppColors.success : AppColors.warning,
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            isPremium ? 'Abonnement Premium' : 'Compte Gratuit',
-                            style: TextStyle(
-                              color: isPremium ? AppColors.success : AppColors.warning,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
-            Card(
-              child: ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.bolt,
-                    color: AppColors.primary,
-                  ),
-                ),
-                title: const Text('Prédictions restantes'),
-                trailing: Text(
-                  '${authProvider.predictionsLeft}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
+            const SizedBox(height: 24),
+
+            const Text(
+              'Abonnement',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            _buildSettingCard(
+              icon: Icons.bolt,
+              iconColor: AppColors.primary,
+              title: 'Prédictions restantes',
+              trailing: Text(
+                authProvider.isPremium ? 'Illimité' : '\${authProvider.predictionsLeft}',
+                style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),
-            const SizedBox(height: 16),
-            Card(
-              child: ListTile(
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: AppColors.warning.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.workspace_premium,
-                    color: AppColors.warning,
-                  ),
-                ),
-                title: const Text('Devenir Premium'),
-                trailing: const Icon(Icons.chevron_right),
+            if (!isPremium)
+              _buildSettingCard(
+                icon: Icons.workspace_premium,
+                iconColor: AppColors.warning,
+                title: 'Devenir Premium',
+                trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => PremiumView()),
-                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const PremiumView()));
                 },
               ),
+
+            const SizedBox(height: 24),
+            const Text(
+              'Paramètres',
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14, fontWeight: FontWeight.bold),
             ),
-            const Spacer(),
+            const SizedBox(height: 8),
+            _buildSettingCard(
+              icon: Icons.notifications_none,
+              iconColor: AppColors.info,
+              title: 'Notifications',
+              subtitle: 'Paiements, alertes',
+              trailing: Switch(
+                value: _notificationsEnabled,
+                onChanged: (val) => setState(() => _notificationsEnabled = val),
+                activeColor: AppColors.primary,
+              ),
+            ),
+            _buildSettingCard(
+              icon: Icons.dark_mode_outlined,
+              iconColor: AppColors.textPrimary,
+              title: 'Thème Sombre',
+              trailing: Switch(
+                value: _darkThemeEnabled,
+                onChanged: (val) => setState(() => _darkThemeEnabled = val),
+                activeColor: AppColors.primary,
+              ),
+            ),
+
+            const SizedBox(height: 40),
             ElevatedButton.icon(
               onPressed: () async {
                 await authProvider.logout();
@@ -145,16 +161,60 @@ class ProfileView extends StatelessWidget {
                 }
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.error.withOpacity(0.1),
+                backgroundColor: AppColors.surface,
                 foregroundColor: AppColors.error,
-                side: const BorderSide(color: AppColors.error),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: AppColors.error),
+                ),
+                elevation: 0,
               ),
               icon: const Icon(Icons.logout),
-              label: const Text('Se déconnecter'),
+              label: const Text('Se déconnecter', style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 24),
+            const Center(
+              child: Text(
+                'betPronos v1.0.0',
+                style: TextStyle(color: AppColors.textMuted, fontSize: 12),
+              ),
             ),
             const SizedBox(height: 16),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildSettingCard({
+    required IconData icon,
+    required Color iconColor,
+    required String title,
+    String? subtitle,
+    Widget? trailing,
+    VoidCallback? onTap,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: iconColor.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: iconColor, size: 20),
+        ),
+        title: Text(title, style: const TextStyle(color: AppColors.textPrimary)),
+        subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)) : null,
+        trailing: trailing,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

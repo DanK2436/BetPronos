@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../../../core/constants/api_constants.dart';
 import '../../../shared/models/match_model.dart';
@@ -6,22 +7,25 @@ import '../../../shared/models/match_model.dart';
 class ApiFootballService {
   final http.Client _client = http.Client();
 
+  /// Récupère les matchs en direct
   Future<List<MatchModel>> getMatches({bool liveOnly = false}) async {
-    try {
-      final queryParameters = {
-        'wixfutures': 'live',
-      };
-      
-      if (liveOnly) {
-        queryParameters['live'] = 'all';
-      } else {
-        // Fetch matches for today
-        final todayStr = DateTime.now().toIso8601String().substring(0, 10);
-        queryParameters['date'] = todayStr;
-      }
+    if (liveOnly) {
+      return _fetchFixtures({'live': 'all'});
+    }
+    final todayStr = DateTime.now().toIso8601String().substring(0, 10);
+    return _fetchFixtures({'date': todayStr});
+  }
 
+  /// Récupère les matchs pour une date spécifique
+  Future<List<MatchModel>> getMatchesByDate(DateTime date) async {
+    final dateStr = date.toIso8601String().substring(0, 10);
+    return _fetchFixtures({'date': dateStr});
+  }
+
+  Future<List<MatchModel>> _fetchFixtures(Map<String, String> params) async {
+    try {
       final uri = Uri.parse('${ApiConstants.apiFootballBaseUrl}/fixtures')
-          .replace(queryParameters: queryParameters);
+          .replace(queryParameters: params);
 
       final response = await _client.get(
         uri,
@@ -29,18 +33,18 @@ class ApiFootballService {
           'x-rapidapi-key': ApiConstants.apiFootballKey,
           'x-rapidapi-host': 'v3.football.api-sports.io',
         },
-      );
+      ).timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final List<dynamic> responseList = data['response'] ?? [];
-        
+        final data = json.decode(response.body) as Map<String, dynamic>;
+        final responseList = data['response'] as List<dynamic>? ?? [];
+
         return responseList.map((item) {
-          final fixture = item['fixture'] ?? {};
-          final league = item['league'] ?? {};
-          final teams = item['teams'] ?? {};
-          final goals = item['goals'] ?? {};
-          
+          final fixture = item['fixture'] as Map<String, dynamic>? ?? {};
+          final league = item['league'] as Map<String, dynamic>? ?? {};
+          final teams = item['teams'] as Map<String, dynamic>? ?? {};
+          final goals = item['goals'] as Map<String, dynamic>? ?? {};
+
           return MatchModel(
             id: 'apifootball-${fixture['id']}',
             homeTeam: Team(
@@ -59,19 +63,20 @@ class ApiFootballService {
               logoUrl: league['logo'] ?? '',
               country: league['country'] ?? '',
             ),
-            dateTime: DateTime.parse(fixture['date'] ?? DateTime.now().toIso8601String()),
-            status: _parseStatus(fixture['status']?['short']),
-            homeScore: goals['home'],
-            awayScore: goals['away'],
+            dateTime: DateTime.tryParse(fixture['date']?.toString() ?? '') ?? DateTime.now(),
+            status: _parseStatus(fixture['status']?['short']?.toString()),
+            homeScore: goals['home'] != null ? int.tryParse(goals['home'].toString()) : null,
+            awayScore: goals['away'] != null ? int.tryParse(goals['away'].toString()) : null,
             timeElapsed: fixture['status']?['elapsed']?.toString(),
             round: league['round']?.toString(),
           );
-        }).toList();
+        }).where((m) => m.homeTeam.name.isNotEmpty && m.awayTeam.name.isNotEmpty).toList();
       } else {
-        throw Exception('Failed to load api-football fixtures: ${response.statusCode}');
+        debugPrint('ApiFootball HTTP ${response.statusCode}');
+        return [];
       }
     } catch (e) {
-      print('ApiFootballService Error: $e');
+      debugPrint('ApiFootballService error: $e');
       return [];
     }
   }

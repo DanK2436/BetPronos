@@ -40,7 +40,7 @@ class DashboardView extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Bonjour, $username 👋',
+                                  'Bonjour, $username',
                                   style: const TextStyle(
                                     color: AppColors.textSecondary,
                                     fontSize: 14,

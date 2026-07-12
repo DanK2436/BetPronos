@@ -12,9 +12,19 @@ class AiFootballFallbackService {
 
   // ─── RECHERCHE DE MATCHS (72h) ────────────────────────────────────────────
 
+  Future<List<MatchModel>> fetchMatchesForDate(DateTime date) async {
+    final dateStr = date.toIso8601String().substring(0, 10);
+    final prompt = _buildSearchPrompt(dateStr);
+    return _runAiCascade(prompt);
+  }
+
   Future<List<MatchModel>> fetchMatchesFromAI() async {
     final dateStr = DateTime.now().toIso8601String().substring(0, 10);
     final prompt = _buildSearchPrompt(dateStr);
+    return _runAiCascade(prompt);
+  }
+
+  Future<List<MatchModel>> _runAiCascade(String prompt) async {
 
     // Cascade de toutes les IAs disponibles
     final List<_AiSource> sources = [
