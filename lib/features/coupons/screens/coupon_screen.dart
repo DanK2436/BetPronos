@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../coupons/providers/coupon_provider.dart';
-import '../../../coupons/models/coupon_model.dart';
+import '../providers/coupon_provider.dart';
+import '../models/coupon_model.dart';
 
 class CouponScreen extends StatefulWidget {
   const CouponScreen({super.key});
