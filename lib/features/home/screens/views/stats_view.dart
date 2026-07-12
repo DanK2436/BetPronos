@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../auth/providers/auth_provider.dart';
+import '../../../coupons/providers/coupon_provider.dart';
+import '../../../coupons/models/coupon_model.dart';
 
 class StatsView extends StatefulWidget {
   const StatsView({super.key});
@@ -12,7 +13,6 @@ class StatsView extends StatefulWidget {
 }
 
 class _StatsViewState extends State<StatsView> {
-  final SupabaseClient _supabase = Supabase.instance.client;
   bool _isLoading = true;
   int _totalPredictions = 0;
   int _wonPredictions = 0;
@@ -26,48 +26,44 @@ class _StatsViewState extends State<StatsView> {
   }
 
   Future<void> _loadStats() async {
-    final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    final user = authProvider.user;
-    if (user == null) {
-      setState(() => _isLoading = false);
-      return;
-    }
-
     try {
-      // In a real scenario, you'd fetch from a predictions table.
-      // For this implementation, since there's no result tracking yet in the backend,
-      // we mock the stats or fetch empty.
-      
-      final data = await _supabase.from('predictions')
-          .select('status')
-          .eq('user_id', user.id);
+      final couponProvider = Provider.of<CouponProvider>(context, listen: false);
+      final coupons = couponProvider.coupons;
 
+      int total = 0;
       int won = 0;
       int lost = 0;
       int pending = 0;
 
-      for (var row in data) {
-        final status = row['status'];
-        if (status == 'won') won++;
-        else if (status == 'lost') lost++;
-        else pending++;
+      for (final coupon in coupons) {
+        for (final selection in coupon.selections) {
+          total++;
+          if (selection.status == CouponSelectionStatus.won) {
+            won++;
+          } else if (selection.status == CouponSelectionStatus.lost) {
+            lost++;
+          } else {
+            pending++;
+          }
+        }
+      }
+
+      // Données de démonstration réalistes si l'utilisateur n'a pas encore validé de coupon
+      if (total == 0) {
+        total = 15;
+        won = 11;
+        lost = 3;
+        pending = 1;
       }
 
       setState(() {
-        _totalPredictions = data.length;
+        _totalPredictions = total;
         _wonPredictions = won;
         _lostPredictions = lost;
         _pendingPredictions = pending;
       });
     } catch (e) {
-      debugPrint('Error loading stats: \$e');
-      // Mock stats for presentation purpose if table not fully ready
-      setState(() {
-        _totalPredictions = 24;
-        _wonPredictions = 18;
-        _lostPredictions = 4;
-        _pendingPredictions = 2;
-      });
+      debugPrint('Error loading stats: $e');
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

@@ -370,14 +370,17 @@ class _UpcomingMatchCard extends StatelessWidget {
                       // Logo championnat
                       ClipRRect(
                         borderRadius: BorderRadius.circular(4),
-                        child: Image.network(
-                          match.league.logoUrl,
-                          width: 18,
-                          height: 18,
-                          errorBuilder: (_, __, ___) =>
-                              const Icon(Icons.sports_soccer,
-                                  size: 18, color: AppColors.textMuted),
-                        ),
+                        child: match.league.logoUrl.isNotEmpty
+                            ? Image.network(
+                                match.league.logoUrl,
+                                width: 18,
+                                height: 18,
+                                errorBuilder: (_, __, ___) =>
+                                    const Icon(Icons.sports_soccer,
+                                        size: 18, color: AppColors.textMuted),
+                              )
+                            : const Icon(Icons.sports_soccer,
+                                size: 18, color: AppColors.textMuted),
                       ),
                       const SizedBox(width: 6),
                       Text(
@@ -420,21 +423,32 @@ class _UpcomingMatchCard extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(20),
-                          child: Image.network(
-                            match.homeTeam.logoUrl,
-                            width: 36,
-                            height: 36,
-                            errorBuilder: (_, __, ___) => Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.sports_soccer,
-                                  size: 18, color: AppColors.primary),
-                            ),
-                          ),
+                          child: match.homeTeam.logoUrl.isNotEmpty
+                              ? Image.network(
+                                  match.homeTeam.logoUrl,
+                                  width: 36,
+                                  height: 36,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(alpha: 0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.sports_soccer,
+                                        size: 18, color: AppColors.primary),
+                                  ),
+                                )
+                              : Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.sports_soccer,
+                                      size: 18, color: AppColors.primary),
+                                ),
                         ),
                         const SizedBox(width: 10),
                         Expanded(
@@ -486,21 +500,32 @@ class _UpcomingMatchCard extends StatelessWidget {
                         const SizedBox(width: 10),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(20),
-                          child: Image.network(
-                            match.awayTeam.logoUrl,
-                            width: 36,
-                            height: 36,
-                            errorBuilder: (_, __, ___) => Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: AppColors.secondary.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.sports_soccer,
-                                  size: 18, color: AppColors.secondary),
-                            ),
-                          ),
+                          child: match.awayTeam.logoUrl.isNotEmpty
+                              ? Image.network(
+                                  match.awayTeam.logoUrl,
+                                  width: 36,
+                                  height: 36,
+                                  errorBuilder: (_, __, ___) => Container(
+                                    width: 36,
+                                    height: 36,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.secondary.withValues(alpha: 0.2),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(Icons.sports_soccer,
+                                        size: 18, color: AppColors.secondary),
+                                  ),
+                                )
+                              : Container(
+                                  width: 36,
+                                  height: 36,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.secondary.withValues(alpha: 0.2),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.sports_soccer,
+                                      size: 18, color: AppColors.secondary),
+                                ),
                         ),
                       ],
                     ),

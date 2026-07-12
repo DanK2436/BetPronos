@@ -11,8 +11,13 @@ import 'features/matches/providers/match_provider.dart';
 import 'features/predictions/providers/prediction_provider.dart';
 import 'features/coupons/providers/coupon_provider.dart';
 
+import 'package:intl/date_symbol_data_local.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialisation de la locale française pour DateFormat
+  await initializeDateFormatting('fr_FR', null);
 
   await Supabase.initialize(
     url: ApiConstants.supabaseUrl,

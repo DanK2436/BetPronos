@@ -128,8 +128,9 @@ class _PredictionsViewState extends State<PredictionsView> {
     final matchProvider = Provider.of<MatchProvider>(context);
     final couponProvider = Provider.of<CouponProvider>(context);
 
-    // Filter to show only matches not yet started (or we can show all)
-    final matches = matchProvider.scheduledMatches;
+    // Filter to show only matches not yet started (future matches)
+    final now = DateTime.now();
+    final matches = matchProvider.scheduledMatches.where((m) => m.dateTime.isAfter(now)).toList();
 
     return Scaffold(
       backgroundColor: AppColors.background,

@@ -23,6 +23,7 @@ class FootballAggregator {
       now.subtract(const Duration(days: 1)), // Hier
       now,                                   // Aujourd'hui
       now.add(const Duration(days: 1)),      // Demain
+      now.add(const Duration(days: 2)),      // Après-demain (pour compléter 72h)
     ];
 
     // Nettoyage automatique du vieux cache

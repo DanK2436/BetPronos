@@ -1,10 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../providers/coupon_provider.dart';
-import '../models/coupon_model.dart';
-import '../../matches/providers/match_provider.dart';
-import '../services/smart_coupon_service.dart';
+import '../../../coupons/providers/coupon_provider.dart';
+import '../../../coupons/models/coupon_model.dart';
 
 class CouponScreen extends StatefulWidget {
   const CouponScreen({super.key});
@@ -13,9 +13,21 @@ class CouponScreen extends StatefulWidget {
   State<CouponScreen> createState() => _CouponScreenState();
 }
 
-class _CouponScreenState extends State<CouponScreen> {
-  final SmartCouponService _smartCouponService = SmartCouponService();
-  bool _isGenerating = false;
+class _CouponScreenState extends State<CouponScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +45,7 @@ class _CouponScreenState extends State<CouponScreen> {
               children: [
                 const Icon(Icons.receipt_long, color: AppColors.textPrimary),
                 const SizedBox(width: 8),
-                const Text('Mon Coupon', style: TextStyle(color: AppColors.textPrimary)),
+                const Text('Coupons', style: TextStyle(color: AppColors.textPrimary)),
                 if (hasSelections) ...[
                   const SizedBox(width: 8),
                   Container(
@@ -44,17 +56,35 @@ class _CouponScreenState extends State<CouponScreen> {
                     ),
                     child: Text(
                       '\${coupon.selectionCount}',
-                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
                 ]
               ],
             ),
+            bottom: TabBar(
+              controller: _tabController,
+              indicatorColor: AppColors.primary,
+              labelColor: AppColors.primary,
+              unselectedLabelColor: AppColors.textMuted,
+              tabs: const [
+                Tab(text: 'Coupon Actif'),
+                Tab(text: 'Historique'),
+              ],
+            ),
           ),
-          body: hasSelections
-              ? _buildCouponList(context, provider, coupon)
-              : _buildEmptyState(context),
-          bottomNavigationBar: hasSelections
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              // Tab 1: Active coupon
+              hasSelections
+                  ? _buildCouponList(context, provider, coupon)
+                  : _buildEmptyState(context, provider),
+              // Tab 2: History
+              _buildHistory(context, provider),
+            ],
+          ),
+          bottomNavigationBar: hasSelections && _tabController.index == 0
               ? _buildBottomBar(context, provider, coupon)
               : null,
         );
@@ -62,7 +92,7 @@ class _CouponScreenState extends State<CouponScreen> {
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, CouponProvider provider) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -71,74 +101,137 @@ class _CouponScreenState extends State<CouponScreen> {
           const SizedBox(height: 16),
           const Text(
             'Aucune sélection',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          const Text(
-            'Ajoutez des pronostics depuis les matchs pour construire votre coupon.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: AppColors.textSecondary),
-          ),
-          const SizedBox(height: 32),
-          ElevatedButton.icon(
-            onPressed: _isGenerating ? null : () async {
-              setState(() => _isGenerating = true);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Génération du coupon intelligent en cours...'),
-                  backgroundColor: AppColors.primary,
-                  duration: Duration(seconds: 2),
-                ),
-              );
-              
-              try {
-                final matchProvider = Provider.of<MatchProvider>(context, listen: false);
-                final couponProvider = Provider.of<CouponProvider>(context, listen: false);
-                
-                final coupon = await _smartCouponService.generateSmartCoupon(matchProvider.scheduledMatches);
-                if (coupon != null && coupon.selections.isNotEmpty) {
-                  for (final s in coupon.selections) {
-                    couponProvider.addSelection(s);
-                  }
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Coupon intelligent généré avec succès !'),
-                        backgroundColor: AppColors.success,
-                      ),
-                    );
-                  }
-                } else {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Aucun match sûr trouvé. Veuillez réessayer.'),
-                        backgroundColor: AppColors.warning,
-                      ),
-                    );
-                  }
-                }
-              } finally {
-                if (mounted) {
-                  setState(() => _isGenerating = false);
-                }
-              }
-            },
-            icon: _isGenerating 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const Icon(Icons.auto_awesome, color: Colors.white),
-            label: const Text('Générateur IA', style: TextStyle(color: Colors.white)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 32),
+            child: Text(
+              'Allez dans "Pronos" pour ajouter des matchs à votre coupon.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: AppColors.textSecondary),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildHistory(BuildContext context, CouponProvider provider) {
+    final history = provider.coupons;
+    if (history.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.history, size: 80, color: AppColors.textMuted.withOpacity(0.5)),
+            const SizedBox(height: 16),
+            const Text(
+              'Aucun coupon validé',
+              style: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Vos coupons validés apparaîtront ici.',
+              style: TextStyle(color: AppColors.textSecondary),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: history.length,
+      itemBuilder: (context, index) {
+        final c = history[index];
+        return _buildHistoryCouponCard(c);
+      },
+    );
+  }
+
+  Widget _buildHistoryCouponCard(Coupon coupon) {
+    final status = coupon.overallStatus;
+    final isWon = status == CouponSelectionStatus.won;
+    final isLost = status == CouponSelectionStatus.lost;
+    final statusColor = isWon ? AppColors.success : isLost ? AppColors.error : AppColors.warning;
+    final statusText = isWon ? 'GAGNE' : isLost ? 'PERDU' : 'EN COURS';
+    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(coupon.createdAt);
+
+    return Card(
+      color: AppColors.surface,
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '\${coupon.selectionCount} sélection(s)',
+                  style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  dateStr,
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: statusColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    statusText,
+                    style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'x\${coupon.totalOdds.toStringAsFixed(2)}',
+                  style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ],
+        ),
+        children: coupon.selections.map((s) {
+          final selStatus = s.status;
+          final selColor = selStatus == CouponSelectionStatus.won
+              ? AppColors.success
+              : selStatus == CouponSelectionStatus.lost
+                  ? AppColors.error
+                  : AppColors.textMuted;
+          final selIcon = selStatus == CouponSelectionStatus.won
+              ? Icons.check_circle
+              : selStatus == CouponSelectionStatus.lost
+                  ? Icons.cancel
+                  : Icons.pending;
+
+          return ListTile(
+            leading: Icon(selIcon, color: selColor, size: 20),
+            title: Text(
+              '\${s.homeTeamName} vs \${s.awayTeamName}',
+              style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+            ),
+            subtitle: Text(
+              '\${_getBetTypeName(s.betType)}: \${s.selectedValue}',
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+            ),
+            trailing: Text(
+              s.odds.toStringAsFixed(2),
+              style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
@@ -163,11 +256,11 @@ class _CouponScreenState extends State<CouponScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        '\${selection.homeTeamName} - \${selection.awayTeamName}',
+                        '\${selection.homeTeamName} vs \${selection.awayTeamName}',
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                          fontSize: 15,
                         ),
                       ),
                     ),
@@ -250,17 +343,10 @@ class _CouponScreenState extends State<CouponScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Cote Totale',
-                  style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
-                ),
+                const Text('Cote Totale', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
                 Text(
                   coupon.totalOdds.toStringAsFixed(2),
-                  style: const TextStyle(
-                    color: AppColors.success,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: const TextStyle(color: AppColors.success, fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
@@ -269,14 +355,17 @@ class _CouponScreenState extends State<CouponScreen> {
               width: double.infinity,
               height: 50,
               child: ElevatedButton(
-                onPressed: () {
-                  provider.validateCoupon();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Coupon validé avec succès !'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
+                onPressed: () async {
+                  await provider.validateCoupon();
+                  if (context.mounted) {
+                    _tabController.animateTo(1);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Coupon valide ! Retrouvez-le dans l\'Historique.'),
+                        backgroundColor: AppColors.success,
+                      ),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
@@ -297,14 +386,13 @@ class _CouponScreenState extends State<CouponScreen> {
   String _getBetTypeName(BetType type) {
     switch (type) {
       case BetType.score: return 'Score Exact';
-      case BetType.homeWin: return 'Victoire Domicile';
+      case BetType.homeWin: return 'Victoire Dom.';
       case BetType.draw: return 'Match Nul';
-      case BetType.awayWin: return 'Victoire Extérieur';
+      case BetType.awayWin: return 'Victoire Ext.';
       case BetType.btts: return 'Les 2 Marquent';
-      case BetType.over15: return 'Plus de 1.5 buts';
-      case BetType.over25: return 'Plus de 2.5 buts';
+      case BetType.over15: return '+1.5 buts';
+      case BetType.over25: return '+2.5 buts';
       case BetType.oddEven: return 'Pair/Impair';
-      default: return 'Pari';
     }
   }
 }

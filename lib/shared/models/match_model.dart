@@ -11,12 +11,19 @@ class Team extends Equatable {
     required this.logoUrl,
   });
 
-  factory Team.fromJson(Map<String, dynamic> json) {
-    return Team(
-      id: json['id']?.toString() ?? '',
-      name: json['name'] ?? '',
-      logoUrl: json['logo'] ?? json['logoUrl'] ?? 'https://media.api-sports.io/football/teams/placeholder.png',
-    );
+  factory Team.fromJson(dynamic json) {
+    if (json is String) {
+      return Team(id: '', name: json, logoUrl: '');
+    }
+    if (json is Map) {
+      final nameStr = json['name'] ?? json['teamName'] ?? json['team_name'] ?? '';
+      return Team(
+        id: json['id']?.toString() ?? '',
+        name: nameStr,
+        logoUrl: json['logo'] ?? json['logoUrl'] ?? json['logo_url'] ?? 'https://api.dicebear.com/7.x/identicon/png?seed=${Uri.encodeComponent(nameStr.isNotEmpty ? nameStr : "Team")}',
+      );
+    }
+    return const Team(id: '', name: '', logoUrl: '');
   }
 
   Map<String, dynamic> toJson() => {
@@ -42,13 +49,20 @@ class League extends Equatable {
     required this.country,
   });
 
-  factory League.fromJson(Map<String, dynamic> json) {
-    return League(
-      id: json['id']?.toString() ?? '',
-      name: json['name'] ?? '',
-      logoUrl: json['logo'] ?? json['logoUrl'] ?? 'https://media.api-sports.io/football/leagues/placeholder.png',
-      country: json['country'] ?? '',
-    );
+  factory League.fromJson(dynamic json) {
+    if (json is String) {
+      return League(id: '', name: json, logoUrl: '', country: '');
+    }
+    if (json is Map) {
+      final nameStr = json['name'] ?? json['leagueName'] ?? json['league_name'] ?? '';
+      return League(
+        id: json['id']?.toString() ?? '',
+        name: nameStr,
+        logoUrl: json['logo'] ?? json['logoUrl'] ?? json['logo_url'] ?? 'https://api.dicebear.com/7.x/initials/png?seed=${Uri.encodeComponent(nameStr.isNotEmpty ? nameStr : "L")}',
+        country: json['country'] ?? json['leagueCountry'] ?? '',
+      );
+    }
+    return const League(id: '', name: '', logoUrl: '', country: '');
   }
 
   Map<String, dynamic> toJson() => {
@@ -102,8 +116,8 @@ class MatchModel extends Equatable {
 
     return MatchModel(
       id: json['id']?.toString() ?? '',
-      homeTeam: Team.fromJson(json['homeTeam'] ?? json['home'] ?? {}),
-      awayTeam: Team.fromJson(json['awayTeam'] ?? json['away'] ?? {}),
+      homeTeam: Team.fromJson(json['homeTeam'] ?? json['home_team'] ?? json['home'] ?? {}),
+      awayTeam: Team.fromJson(json['awayTeam'] ?? json['away_team'] ?? json['away'] ?? {}),
       league: League.fromJson(json['league'] ?? {}),
       dateTime: DateTime.parse(json['dateTime'] ?? json['date'] ?? DateTime.now().toIso8601String()),
       status: parsedStatus,

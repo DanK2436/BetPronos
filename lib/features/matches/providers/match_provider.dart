@@ -84,10 +84,37 @@ class MatchProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final updatedMatches = await _aiFallback.verifyLiveScoresWithAI(_matches);
-      _matches = updatedMatches;
+      // 1. Tenter d'abord de récupérer les scores en direct via les APIs officielles (rapide)
+      final liveMatches = await _aggregator.getLiveMatches();
+      if (liveMatches.isNotEmpty) {
+        debugPrint('verifyLiveScores: ${liveMatches.length} scores récupérés via API');
+        final Map<String, MatchModel> liveMap = {for (var m in liveMatches) m.id: m};
+        _matches = _matches.map((match) {
+          final live = liveMap[match.id];
+          if (live != null) {
+            return MatchModel(
+              id: match.id,
+              homeTeam: match.homeTeam,
+              awayTeam: match.awayTeam,
+              league: match.league,
+              dateTime: match.dateTime,
+              status: MatchStatus.live,
+              homeScore: live.homeScore,
+              awayScore: live.awayScore,
+              timeElapsed: live.timeElapsed,
+              round: match.round,
+            );
+          }
+          return match;
+        }).toList();
+      } else {
+        // 2. Si l'API renvoie vide, fallback IA (plus lent mais fiable si clés configurées)
+        debugPrint('verifyLiveScores: Fallback IA pour les scores');
+        final updatedMatches = await _aiFallback.verifyLiveScoresWithAI(_matches);
+        _matches = updatedMatches;
+      }
     } catch (e) {
-      debugPrint('Error verifying live scores with AI: $e');
+      debugPrint('Error verifying live scores: $e');
     } finally {
       _isCheckingScores = false;
       notifyListeners();
