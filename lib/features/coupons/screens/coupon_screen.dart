@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../providers/coupon_provider.dart';
 import '../models/coupon_model.dart';
 import '../../matches/providers/match_provider.dart';

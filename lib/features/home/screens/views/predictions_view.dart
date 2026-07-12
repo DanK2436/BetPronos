@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../auth/providers/auth_provider.dart';
-import '../../matches/providers/match_provider.dart';
-import '../../coupons/providers/coupon_provider.dart';
-import '../../coupons/models/coupon_model.dart';
-import '../../predictions/services/prediction_orchestrator.dart';
-import '../../predictions/models/prediction_model.dart';
-import '../../../shared/models/match_model.dart';
+import '../../../matches/providers/match_provider.dart';
+import '../../../coupons/providers/coupon_provider.dart';
+import '../../../coupons/models/coupon_model.dart';
+import '../../../predictions/services/prediction_orchestrator.dart';
+import '../../../predictions/models/prediction_model.dart';
+import '../../../../shared/models/match_model.dart';
 
 class PredictionsView extends StatefulWidget {
   const PredictionsView({super.key});

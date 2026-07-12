@@ -9,6 +9,7 @@ import 'features/auth/screens/splash_screen.dart';
 import 'features/home/screens/home_screen.dart';
 import 'features/matches/providers/match_provider.dart';
 import 'features/predictions/providers/prediction_provider.dart';
+import 'features/coupons/providers/coupon_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,6 +32,7 @@ class BetPronosApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider(AuthService())),
         ChangeNotifierProvider(create: (_) => MatchProvider()),
         ChangeNotifierProvider(create: (_) => PredictionProvider()),
+        ChangeNotifierProvider(create: (_) => CouponProvider()),
       ],
       child: MaterialApp(
         title: 'betPronos',
