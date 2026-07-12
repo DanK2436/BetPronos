@@ -99,7 +99,7 @@ class PredictionOrchestrator {
     final pct = (overallConfidence * 100).toStringAsFixed(0);
     String summary;
     if (consensusHome > consensusAway) {
-      summary = 'Consensus : Victoire de ${match.homeTeam.name} à domicile ($consensusHome–$consensusAway). Options recommandées : ${overUnder1.5 == "Plus de 1.5" ? "Plus de 1.5 buts" : "Moins de 1.5 buts"} et les deux équipes marquent : $bttsFT. Cotes : $odds.';
+      summary = 'Consensus : Victoire de ${match.homeTeam.name} à domicile ($consensusHome–$consensusAway). Options recommandées : ${overUnder15 == "Plus de 1.5" ? "Plus de 1.5 buts" : "Moins de 1.5 buts"} et les deux équipes marquent : $bttsFT. Cotes : $odds.';
     } else if (consensusAway > consensusHome) {
       summary = 'Consensus : Victoire à l\'extérieur de ${match.awayTeam.name} ($consensusHome–$consensusAway). Options recommandées : $overUnder25 et les deux équipes marquent : $bttsFT. Cotes : $odds.';
     } else {
