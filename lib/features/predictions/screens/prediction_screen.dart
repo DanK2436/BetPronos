@@ -75,7 +75,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
           ).animate().fade(duration: 500.ms).slideY(begin: 0.2, end: 0.0),
           const SizedBox(height: 12),
           Text(
-            'Gemini, GPT-4, Mistral & DeepSeek calculent le consensus',
+            'Orchestration en cours : 7 agents IA en temps réel',
             style: TextStyle(
               fontSize: 13,
               color: AppColors.textSecondary,
@@ -135,7 +135,7 @@ class _PredictionScreenState extends State<PredictionScreen> {
             child: Column(
               children: [
                 const Text(
-                  'SCORE PREDU CONSENSUS',
+                  'SCORE PRÉDU CONSENSUS',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -154,7 +154,6 @@ class _PredictionScreenState extends State<PredictionScreen> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                // Trust percentage gauge
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -186,7 +185,58 @@ class _PredictionScreenState extends State<PredictionScreen> {
             ),
           ).animate().fade(duration: 600.ms).scale(curve: Curves.easeOutBack),
           
-          const SizedBox(height: 32),
+          const SizedBox(height: 28),
+
+          // ─── OPTIONS DE PARIS (CONSENSUS) ───
+          const Text(
+            'Possibilités de Paris Sportifs',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+          const SizedBox(height: 12),
+          
+          Card(
+            color: AppColors.surface,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: Color(0xFF2A2D4A)),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  _buildBettingRow(
+                    'Les Deux Équipes Marquent (BTTS)',
+                    'Match complet: ${consensus.consensusBetting.bttsFullTime}\n1ère Mi-temps: ${consensus.consensusBetting.bttsFirstHalf} | 2ème Mi-temps: ${consensus.consensusBetting.bttsSecondHalf}',
+                    Icons.compare_arrows,
+                    AppColors.primary,
+                  ),
+                  const Divider(color: Color(0xFF2A2D4A), height: 24),
+                  _buildBettingRow(
+                    'Buts Moins de / Plus de',
+                    '${consensus.consensusBetting.overUnder15} buts (total)\n${consensus.consensusBetting.overUnder25} buts (total)',
+                    Icons.add_circle_outline,
+                    AppColors.warning,
+                  ),
+                  const Divider(color: Color(0xFF2A2D4A), height: 24),
+                  _buildBettingRow(
+                    'Nombre de buts Total (Pair/Impair)',
+                    'Consensus : ${consensus.consensusBetting.oddEven}',
+                    Icons.filter_9_plus_outlined,
+                    AppColors.success,
+                  ),
+                  const Divider(color: Color(0xFF2A2D4A), height: 24),
+                  _buildBettingRow(
+                    'Cotes réelles estimées',
+                    consensus.consensusBetting.estimatedOdds,
+                    Icons.monetization_on_outlined,
+                    Colors.amber,
+                  ),
+                ],
+              ),
+            ),
+          ).animate().fade(delay: 150.ms, duration: 500.ms),
+
+          const SizedBox(height: 28),
           const Text(
             'Analyses Individuelles des Agents',
             style: TextStyle(
@@ -212,16 +262,46 @@ class _PredictionScreenState extends State<PredictionScreen> {
     );
   }
 
+  Widget _buildBettingRow(String title, String desc, IconData icon, Color iconCol) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: iconCol.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, color: iconCol, size: 22),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+              const SizedBox(height: 4),
+              Text(desc, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildAgentCard(AgentPrediction pred) {
     Color agentColor;
     if (pred.agentName.contains('Gemini')) {
       agentColor = AppColors.geminiColor;
-    } else if (pred.agentName.contains('GPT-4')) {
+    } else if (pred.agentName.contains('GPT-4') || pred.agentName.contains('OpenAI')) {
       agentColor = AppColors.openaiColor;
     } else if (pred.agentName.contains('Mistral')) {
       agentColor = AppColors.mistralColor;
-    } else {
+    } else if (pred.agentName.contains('DeepSeek')) {
       agentColor = AppColors.deepseekColor;
+    } else if (pred.agentName.contains('Kimi')) {
+      agentColor = Colors.cyan;
+    } else if (pred.agentName.contains('Grok')) {
+      agentColor = Colors.amber;
+    } else {
+      agentColor = Colors.teal;
     }
 
     return Card(
@@ -281,7 +361,37 @@ class _PredictionScreenState extends State<PredictionScreen> {
                 height: 1.4,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 10),
+            
+            // Sub betting options info
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    'BTTS: ${pred.bettingOptions.bttsFullTime} (1H: ${pred.bettingOptions.bttsFirstHalf} | 2H: ${pred.bettingOptions.bttsSecondHalf})',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Moins/Plus: ${pred.bettingOptions.overUnder15} | ${pred.bettingOptions.overUnder25} | Pair: ${pred.bettingOptions.oddEven}',
+                    style: const TextStyle(color: Colors.white70, fontSize: 11),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Cotes: ${pred.bettingOptions.estimatedOdds}',
+                    style: TextStyle(color: agentColor.withOpacity(0.8), fontSize: 11, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 10),
             Row(
               children: [
                 const Icon(Icons.show_chart, size: 16, color: AppColors.textMuted),

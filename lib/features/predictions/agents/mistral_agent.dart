@@ -30,7 +30,7 @@ class MistralAgent extends BaseAgent {
           ],
           'response_format': {'type': 'json_object'}
         }),
-      );
+      ).timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -43,6 +43,7 @@ class MistralAgent extends BaseAgent {
           predictedAwayScore: jsonMap['predictedAwayScore'] ?? 1,
           confidence: (jsonMap['confidence'] ?? 0.70).toDouble(),
           reasoning: jsonMap['reasoning'] ?? 'Analyse de forme et confrontations.',
+          bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
         );
       } else {
         throw Exception('Mistral API status code: ${response.statusCode}');
@@ -63,6 +64,15 @@ class MistralAgent extends BaseAgent {
       predictedAwayScore: away,
       confidence: 0.71,
       reasoning: 'Mistral suggère que la forme récente de ${match.homeTeam.name} est supérieure. ${match.awayTeam.name} aura du mal à s\'imposer loin de ses bases.',
+      bettingOptions: BettingOptions(
+        bttsFullTime: (home > 0 && away > 0) ? 'Oui' : 'Non',
+        bttsFirstHalf: 'Non',
+        bttsSecondHalf: (home > 0 && away > 0) ? 'Oui' : 'Non',
+        overUnder15: (home + away >= 2) ? 'Plus de 1.5' : 'Moins de 1.5',
+        overUnder25: (home + away >= 3) ? 'Plus de 2.5' : 'Moins de 2.5',
+        oddEven: (home + away) % 2 == 0 ? 'Pair' : 'Impair',
+        estimatedOdds: '1: 2.25 | X: 3.10 | 2: 3.20',
+      ),
     );
   }
 }

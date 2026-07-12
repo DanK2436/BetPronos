@@ -14,7 +14,6 @@ class GeminiAgent extends BaseAgent {
   Future<AgentPrediction> predict(MatchModel match) async {
     final prompt = buildPrompt(match);
     
-    // Try primary key first, fall back to secondary
     try {
       return await _callGeminiApi(prompt, ApiConstants.geminiKey1, match);
     } catch (e) {
@@ -47,7 +46,7 @@ class GeminiAgent extends BaseAgent {
           'responseMimeType': 'application/json',
         }
       }),
-    );
+    ).timeout(const Duration(seconds: 20));
 
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
@@ -61,6 +60,7 @@ class GeminiAgent extends BaseAgent {
         predictedAwayScore: jsonMap['predictedAwayScore'] ?? 1,
         confidence: (jsonMap['confidence'] ?? 0.70).toDouble(),
         reasoning: jsonMap['reasoning'] ?? 'Analyse des données historiques.',
+        bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
       );
     } else {
       throw Exception('Gemini API returned status code ${response.statusCode}');
@@ -79,7 +79,6 @@ class GeminiAgent extends BaseAgent {
   }
 
   AgentPrediction _fallbackPrediction(MatchModel match) {
-    // High-quality mock prediction based on team names for a realistic feel
     int home = match.homeTeam.name.length % 3;
     int away = match.awayTeam.name.length % 3;
     if (home == away) home += 1;
@@ -90,6 +89,15 @@ class GeminiAgent extends BaseAgent {
       predictedAwayScore: away,
       confidence: 0.78,
       reasoning: 'Analyse basée sur la dynamique de ${match.homeTeam.name} à domicile contre ${match.awayTeam.name}. Avantage statistique pour l\'hôte.',
+      bettingOptions: BettingOptions(
+        bttsFullTime: (home > 0 && away > 0) ? 'Oui' : 'Non',
+        bttsFirstHalf: 'Non',
+        bttsSecondHalf: (home > 0 && away > 0) ? 'Oui' : 'Non',
+        overUnder15: (home + away >= 2) ? 'Plus de 1.5' : 'Moins de 1.5',
+        overUnder25: (home + away >= 3) ? 'Plus de 2.5' : 'Moins de 2.5',
+        oddEven: (home + away) % 2 == 0 ? 'Pair' : 'Impair',
+        estimatedOdds: '1: 1.95 | X: 3.30 | 2: 3.90',
+      ),
     );
   }
 }

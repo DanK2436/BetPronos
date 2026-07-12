@@ -6,7 +6,6 @@ import '../../../shared/models/match_model.dart';
 import '../models/prediction_model.dart';
 import 'base_agent.dart';
 
-/// Agent Z.ai — Analyse statistique avancée
 class ZaiAgent extends BaseAgent {
   @override
   String get name => "Z.ai";
@@ -43,6 +42,7 @@ class ZaiAgent extends BaseAgent {
           predictedAwayScore: jsonMap['predictedAwayScore'] ?? 0,
           confidence: (jsonMap['confidence'] ?? 0.73).toDouble(),
           reasoning: jsonMap['reasoning'] ?? 'Analyse statistique Z.ai.',
+          bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
         );
       } else {
         throw Exception('Z.ai API: ${response.statusCode}');
@@ -54,12 +54,23 @@ class ZaiAgent extends BaseAgent {
   }
 
   AgentPrediction _fallback(MatchModel match) {
+    const home = 1;
+    const away = 0;
     return AgentPrediction(
       agentName: name,
-      predictedHomeScore: 1,
-      predictedAwayScore: 0,
+      predictedHomeScore: home,
+      predictedAwayScore: away,
       confidence: 0.73,
       reasoning: 'Z.ai : Statistiquement, l\'avantage du terrain favorise ${match.homeTeam.name}. Les données xG prédisent un match à faible score.',
+      bettingOptions: BettingOptions(
+        bttsFullTime: 'Non',
+        bttsFirstHalf: 'Non',
+        bttsSecondHalf: 'Non',
+        overUnder15: 'Moins de 1.5',
+        overUnder25: 'Moins de 2.5',
+        oddEven: 'Impair',
+        estimatedOdds: '1: 1.70 | X: 3.50 | 2: 5.20',
+      ),
     );
   }
 }

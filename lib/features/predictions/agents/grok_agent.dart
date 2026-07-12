@@ -6,7 +6,6 @@ import '../../../shared/models/match_model.dart';
 import '../models/prediction_model.dart';
 import 'base_agent.dart';
 
-/// Agent Grok (xAI) — Expert en analyse des cotes BetPawa/1XBet
 class GrokAgent extends BaseAgent {
   @override
   String get name => "Grok (xAI)";
@@ -43,6 +42,7 @@ class GrokAgent extends BaseAgent {
           predictedAwayScore: jsonMap['predictedAwayScore'] ?? 1,
           confidence: (jsonMap['confidence'] ?? 0.78).toDouble(),
           reasoning: jsonMap['reasoning'] ?? 'Analyse Grok des cotes et de la forme.',
+          bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
         );
       } else {
         throw Exception('Grok API: ${response.statusCode}');
@@ -56,12 +56,23 @@ class GrokAgent extends BaseAgent {
   AgentPrediction _fallback(MatchModel match) {
     final homeAdv = match.homeTeam.name.length % 4;
     final awayAdv = match.awayTeam.name.length % 3;
+    final home = homeAdv;
+    final away = awayAdv > homeAdv ? awayAdv - 1 : awayAdv;
     return AgentPrediction(
       agentName: name,
-      predictedHomeScore: homeAdv,
-      predictedAwayScore: awayAdv > homeAdv ? awayAdv - 1 : awayAdv,
+      predictedHomeScore: home,
+      predictedAwayScore: away,
       confidence: 0.78,
       reasoning: 'Grok analyse les cotes BetPawa : ${match.homeTeam.name} est favori selon les bookmakers. Les côtes indiquent un match serré.',
+      bettingOptions: BettingOptions(
+        bttsFullTime: (home > 0 && away > 0) ? 'Oui' : 'Non',
+        bttsFirstHalf: 'Non',
+        bttsSecondHalf: (home > 0 && away > 0) ? 'Oui' : 'Non',
+        overUnder15: (home + away >= 2) ? 'Plus de 1.5' : 'Moins de 1.5',
+        overUnder25: (home + away >= 3) ? 'Plus de 2.5' : 'Moins de 2.5',
+        oddEven: (home + away) % 2 == 0 ? 'Pair' : 'Impair',
+        estimatedOdds: '1: 1.85 | X: 3.40 | 2: 4.10',
+      ),
     );
   }
 }

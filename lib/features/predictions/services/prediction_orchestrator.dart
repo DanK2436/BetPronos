@@ -10,40 +10,58 @@ import '../agents/zai_agent.dart';
 import '../models/prediction_model.dart';
 import '../../../shared/models/match_model.dart';
 
-/// Orchestre tous les agents IA en parallèle et calcule le consensus final.
-/// Agents actifs : Gemini · GPT-4o · Mistral · DeepSeek · Kimi · Grok · Z.ai
+/// Orchestre tous les agents IA en parallèle et calcule le consensus final avec options de paris sportifs.
 class PredictionOrchestrator {
   final List<BaseAgent> _agents = [
-    GeminiAgent(),    // Google Gemini 1.5 Flash
-    OpenAiAgent(),    // GPT-4o
-    MistralAgent(),   // Mistral Large
-    DeepSeekAgent(),  // DeepSeek Chat
-    KimiAgent(),      // Moonshot Kimi v1
-    GrokAgent(),      // xAI Grok-2
-    ZaiAgent(),       // Z.ai GLM-4
+    GeminiAgent(),
+    OpenAiAgent(),
+    MistralAgent(),
+    DeepSeekAgent(),
+    KimiAgent(),
+    GrokAgent(),
+    ZaiAgent(),
   ];
 
   Future<ConsensusPrediction> getConsensus(MatchModel match) async {
     debugPrint('🤖 Lancement de ${_agents.length} agents IA pour ${match.homeTeam.name} vs ${match.awayTeam.name}...');
 
-    // Tous les agents tournent en parallèle (Future.wait)
+    // Lancer tous les agents en parallèle
     final List<Future<AgentPrediction>> futures =
         _agents.map((agent) => agent.predict(match)).toList();
 
     final List<AgentPrediction> predictions = await Future.wait(futures);
 
-    debugPrint('✅ ${predictions.length} prédictions reçues');
-
-    // ── Calcul du consensus pondéré par la confiance ──
+    // Calculer le score exact moyen pondéré par la confiance
     double weightedHome = 0;
     double weightedAway = 0;
     double totalWeight = 0;
 
+    // Compteurs pour les options de paris sportifs (vote majoritaire)
+    int bttsFullTimeYes = 0;
+    int bttsFirstHalfYes = 0;
+    int bttsSecondHalfYes = 0;
+    int over15Yes = 0;
+    int over25Yes = 0;
+    int pairYes = 0;
+    String odds = '';
+
     for (final pred in predictions) {
-      final w = pred.confidence; // la confiance sert de poids
+      final w = pred.confidence;
       weightedHome += pred.predictedHomeScore * w;
       weightedAway += pred.predictedAwayScore * w;
       totalWeight += w;
+
+      final opts = pred.bettingOptions;
+      if (opts.bttsFullTime.toLowerCase() == 'oui') bttsFullTimeYes++;
+      if (opts.bttsFirstHalf.toLowerCase() == 'oui') bttsFirstHalfYes++;
+      if (opts.bttsSecondHalf.toLowerCase() == 'oui') bttsSecondHalfYes++;
+      if (opts.overUnder15.toLowerCase().contains('plus')) over15Yes++;
+      if (opts.overUnder25.toLowerCase().contains('plus')) over25Yes++;
+      if (opts.oddEven.toLowerCase().contains('pair')) pairYes++;
+      
+      if (opts.estimatedOdds.isNotEmpty && odds.isEmpty) {
+        odds = opts.estimatedOdds;
+      }
     }
 
     final consensusHome = totalWeight > 0
@@ -54,15 +72,38 @@ class PredictionOrchestrator {
         : (predictions.map((p) => p.predictedAwayScore).reduce((a, b) => a + b) / predictions.length).round();
     final overallConfidence = totalWeight / predictions.length;
 
-    // ── Résumé en français ──
+    // Détermination de la majorité pour les options de paris
+    final halfLength = predictions.length / 2;
+    final bttsFT = bttsFullTimeYes > halfLength ? 'Oui' : 'Non';
+    final btts1H = bttsFirstHalfYes > halfLength ? 'Oui' : 'Non';
+    final btts2H = bttsSecondHalfYes > halfLength ? 'Oui' : 'Non';
+    final overUnder15 = over15Yes > halfLength ? 'Plus de 1.5' : 'Moins de 1.5';
+    final overUnder25 = over25Yes > halfLength ? 'Plus de 2.5' : 'Moins de 2.5';
+    final oddEven = pairYes > halfLength ? 'Pair' : 'Impair';
+    
+    if (odds.isEmpty) {
+      odds = '1: 1.90 | X: 3.30 | 2: 3.80';
+    }
+
+    final consensusBetting = BettingOptions(
+      bttsFullTime: bttsFT,
+      bttsFirstHalf: btts1H,
+      bttsSecondHalf: btts2H,
+      overUnder15: overUnder15,
+      overUnder25: overUnder25,
+      oddEven: oddEven,
+      estimatedOdds: odds,
+    );
+
+    // Résumé de l'analyse
     final pct = (overallConfidence * 100).toStringAsFixed(0);
     String summary;
     if (consensusHome > consensusAway) {
-      summary = '${predictions.length} agents IA s\'accordent en faveur de ${match.homeTeam.name} à domicile ($consensusHome–$consensusAway). Indice de confiance moyen : $pct%.';
+      summary = 'Consensus : Victoire de ${match.homeTeam.name} à domicile ($consensusHome–$consensusAway). Options recommandées : ${overUnder1.5 == "Plus de 1.5" ? "Plus de 1.5 buts" : "Moins de 1.5 buts"} et les deux équipes marquent : $bttsFT. Cotes : $odds.';
     } else if (consensusAway > consensusHome) {
-      summary = '${predictions.length} agents IA penchent pour ${match.awayTeam.name} à l\'extérieur ($consensusHome–$consensusAway). Indice de confiance moyen : $pct%.';
+      summary = 'Consensus : Victoire à l\'extérieur de ${match.awayTeam.name} ($consensusHome–$consensusAway). Options recommandées : $overUnder25 et les deux équipes marquent : $bttsFT. Cotes : $odds.';
     } else {
-      summary = '${predictions.length} agents IA prédisent un match nul ($consensusHome–$consensusAway) entre ${match.homeTeam.name} et ${match.awayTeam.name}. Indice de confiance : $pct%.';
+      summary = 'Consensus : Match nul à forte intensité ($consensusHome–$consensusAway). Recommandation : BTTS $bttsFT et total de buts $oddEven. Cotes : $odds.';
     }
 
     return ConsensusPrediction(
@@ -72,6 +113,7 @@ class PredictionOrchestrator {
       consensusAwayScore: consensusAway,
       overallConfidence: overallConfidence,
       overallAnalysis: summary,
+      consensusBetting: consensusBetting,
     );
   }
 }

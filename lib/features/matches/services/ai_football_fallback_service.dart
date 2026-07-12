@@ -212,8 +212,8 @@ statuts possibles: live, finished, scheduled
     return '''
 Recherche sur le web (Flashscore, Sofascore, BetPawa, 1XBet) les vrais matchs de football réels en direct ET programmés pour aujourd'hui et les 72 prochaines heures (à partir du $dateStr).
 Inclus absolument les matchs SCHEDULED (à venir) dans les 72h, pas seulement les matchs live.
-Cible toutes les compétitions majeures et mineures : Ligue des Champions, Premier League, La Liga, Ligue 1, Serie A, Bundesliga, CAF Champions League, CHAN, Ligue 1 Congolaise, Copa Libertadores, MLS, etc.
-Retourne les 20 matchs les plus intéressants pour les parieurs (inclure matchs futurs dans les 72h obligatoirement).
+IMPORTANT : Ne te concentre pas uniquement sur la Coupe du Monde ou les compétitions internationales. Cible activement les ligues et championnats domestiques en cours (Ligue des Champions, Premier League, La Liga, Ligue 1, Serie A, Bundesliga, CAF Champions League, CHAN, Ligue 1 Congolaise (RDC), Copa Libertadores, MLS, etc.).
+Retourne les 20 matchs réels les plus intéressants pour les parieurs à cette date ($dateStr) (inclure des matchs futurs dans les 72h obligatoirement).
 
 Tu DOIS retourner un tableau JSON brut (sans balises markdown, sans texte explicatif) :
 [

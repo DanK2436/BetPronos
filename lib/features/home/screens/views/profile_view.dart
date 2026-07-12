@@ -125,12 +125,9 @@ class ProfileView extends StatelessWidget {
                 title: const Text('Devenir Premium'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  authProvider.makePremium();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('🎉 Vous êtes maintenant Premium !'),
-                      backgroundColor: AppColors.success,
-                    ),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PremiumView()),
                   );
                 },
               ),

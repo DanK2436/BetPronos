@@ -57,7 +57,7 @@ class ApiConstants {
   // PAIEMENT SHWARY (Orange Money, Airtel Money, M-Pesa via RDC)
   // ============================================================
   // Auth : x-merchant-id + x-merchant-key (voir docs: github.com/shwary-co/shwary-doc)
-  static const String shwaryMerchantId = "shwary_bddffc43-02a9-455d-9c2c-09928ac539cd";
+  static const String shwaryMerchantId = "bddffc43-02a9-455d-9c2c-09928ac539cd";
   static const String shwaryApiKey = "shwary_bddffc43-02a9-455d-9c2c-09928ac539cd";
   static const String shwaryBaseUrl = "https://api.shwary.com/api/v1";
   static const String shwaryWebhookUrl =

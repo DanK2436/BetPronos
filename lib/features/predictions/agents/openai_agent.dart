@@ -29,7 +29,7 @@ class OpenAiAgent extends BaseAgent {
           ],
           'response_format': {'type': 'json_object'}
         }),
-      );
+      ).timeout(const Duration(seconds: 20));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -42,6 +42,7 @@ class OpenAiAgent extends BaseAgent {
           predictedAwayScore: jsonMap['predictedAwayScore'] ?? 1,
           confidence: (jsonMap['confidence'] ?? 0.75).toDouble(),
           reasoning: jsonMap['reasoning'] ?? 'Analyse tactique approfondie.',
+          bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
         );
       } else {
         throw Exception('OpenAI API status code: ${response.statusCode}');
@@ -62,6 +63,15 @@ class OpenAiAgent extends BaseAgent {
       predictedAwayScore: away,
       confidence: 0.82,
       reasoning: 'Analyse de l\'efficacité offensive de ${match.homeTeam.name} et de la solidité défensive de ${match.awayTeam.name}. Match tactiquement serré.',
+      bettingOptions: BettingOptions(
+        bttsFullTime: (home > 0 && away > 0) ? 'Oui' : 'Non',
+        bttsFirstHalf: 'Non',
+        bttsSecondHalf: (home > 0 && away > 0) ? 'Oui' : 'Non',
+        overUnder15: (home + away >= 2) ? 'Plus de 1.5' : 'Moins de 1.5',
+        overUnder25: (home + away >= 3) ? 'Plus de 2.5' : 'Moins de 2.5',
+        oddEven: (home + away) % 2 == 0 ? 'Pair' : 'Impair',
+        estimatedOdds: '1: 2.10 | X: 3.20 | 2: 3.50',
+      ),
     );
   }
 }
