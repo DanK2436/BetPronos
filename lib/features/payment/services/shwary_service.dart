@@ -84,8 +84,9 @@ class ShwaryService {
         };
       } else {
         debugPrint('⚠️ Shwary erreur ${response.statusCode}: ${response.body}');
-        if (response.statusCode == 401) {
-          debugPrint('🔄 Clé API invalide (401) ou non configurée : Activation du mode simulation/bac à sable.');
+        if (response.statusCode == 401 && kDebugMode) {
+          // En mode debug uniquement : simulation si clés API non configurées
+          debugPrint('🔄 Clé API invalide (401) - Mode simulation activé (DEBUG seulement).');
           return {
             'success': true,
             'status': 'pending',
@@ -95,18 +96,27 @@ class ShwaryService {
         }
         return {
           'success': false,
-          'error': 'Erreur API Shwary: ${response.statusCode}',
+          'error': response.statusCode == 401
+              ? 'Configuration du paiement incorrecte. Contactez le support.'
+              : 'Erreur API Shwary: ${response.statusCode}',
           'reference': reference,
         };
       }
     } catch (e) {
-      debugPrint('❌ Exception Shwary: $e');
-      // Mode simulation hors-ligne
+      debugPrint('❌ Exception Shwary: \$e');
+      if (kDebugMode) {
+        // Simulation hors-ligne uniquement en debug
+        return {
+          'success': true,
+          'status': 'pending',
+          'reference': reference,
+          'isSandbox': true,
+        };
+      }
       return {
-        'success': true,
-        'status': 'pending',
+        'success': false,
+        'error': 'Impossible de contacter le serveur de paiement. Vérifiez votre connexion.',
         'reference': reference,
-        'isSandbox': true,
       };
     }
   }
@@ -114,9 +124,9 @@ class ShwaryService {
   /// Vérifie le statut du paiement via Supabase (webhook) ou l'API Shwary
   Future<bool> verifyPaymentStatus(String reference) async {
     try {
-      // Si la référence commence par "bp_" (simulation locale de test/démo)
-      if (reference.startsWith('bp_')) {
-        // Mettre à jour Supabase en succès pour le test local de l'utilisateur
+      // Si la référence commence par "bp_" → seulement en mode DEBUG (test dev)
+      if (reference.startsWith('bp_') && kDebugMode) {
+        // Mettre à jour Supabase en succès pour le test local
         try {
           await _supabase
               .from('payments')

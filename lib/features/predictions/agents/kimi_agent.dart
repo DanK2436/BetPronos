@@ -38,8 +38,8 @@ class KimiAgent extends BaseAgent {
         final jsonMap = json.decode(content);
         return AgentPrediction(
           agentName: name,
-          predictedHomeScore: jsonMap['predictedHomeScore'] ?? 1,
-          predictedAwayScore: jsonMap['predictedAwayScore'] ?? 1,
+          predictedHomeScore: parseScore(jsonMap, 'Home'),
+          predictedAwayScore: parseScore(jsonMap, 'Away'),
           confidence: (jsonMap['confidence'] ?? 0.72).toDouble(),
           reasoning: jsonMap['reasoning'] ?? 'Analyse tactique Kimi.',
           bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
@@ -54,23 +54,6 @@ class KimiAgent extends BaseAgent {
   }
 
   AgentPrediction _fallback(MatchModel match) {
-    final home = (match.homeTeam.name.hashCode % 3).abs();
-    final away = (match.awayTeam.name.hashCode % 3).abs();
-    return AgentPrediction(
-      agentName: name,
-      predictedHomeScore: home,
-      predictedAwayScore: away,
-      confidence: 0.72,
-      reasoning: 'Kimi analyse : ${match.homeTeam.name} joue à domicile avec un avantage tactique. ${match.awayTeam.name} devra défendre solidement.',
-      bettingOptions: BettingOptions(
-        bttsFullTime: (home > 0 && away > 0) ? 'Oui' : 'Non',
-        bttsFirstHalf: 'Non',
-        bttsSecondHalf: (home > 0 && away > 0) ? 'Oui' : 'Non',
-        overUnder15: (home + away >= 2) ? 'Plus de 1.5' : 'Moins de 1.5',
-        overUnder25: (home + away >= 3) ? 'Plus de 2.5' : 'Moins de 2.5',
-        oddEven: (home + away) % 2 == 0 ? 'Pair' : 'Impair',
-        estimatedOdds: '1: 2.05 | X: 3.30 | 2: 3.40',
-      ),
-    );
+    return getDynamicFallback(match, name);
   }
 }

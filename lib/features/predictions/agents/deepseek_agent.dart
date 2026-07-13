@@ -38,8 +38,8 @@ class DeepSeekAgent extends BaseAgent {
         
         return AgentPrediction(
           agentName: name,
-          predictedHomeScore: jsonMap['predictedHomeScore'] ?? 1,
-          predictedAwayScore: jsonMap['predictedAwayScore'] ?? 1,
+          predictedHomeScore: parseScore(jsonMap, 'Home'),
+          predictedAwayScore: parseScore(jsonMap, 'Away'),
           confidence: (jsonMap['confidence'] ?? 0.80).toDouble(),
           reasoning: jsonMap['reasoning'] ?? 'Analyse statistique mathématique.',
           bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
@@ -54,24 +54,6 @@ class DeepSeekAgent extends BaseAgent {
   }
 
   AgentPrediction _fallbackPrediction(MatchModel match) {
-    int home = match.homeTeam.name.contains(' ') ? 2 : 1;
-    int away = match.awayTeam.name.contains(' ') ? 1 : 0;
-    
-    return AgentPrediction(
-      agentName: name,
-      predictedHomeScore: home,
-      predictedAwayScore: away,
-      confidence: 0.79,
-      reasoning: 'Calculs probabilistes de DeepSeek basés sur l\'historique des buts de ${match.homeTeam.name} à domicile. Avantage défensif prouvé.',
-      bettingOptions: BettingOptions(
-        bttsFullTime: (home > 0 && away > 0) ? 'Oui' : 'Non',
-        bttsFirstHalf: 'Non',
-        bttsSecondHalf: (home > 0 && away > 0) ? 'Oui' : 'Non',
-        overUnder15: (home + away >= 2) ? 'Plus de 1.5' : 'Moins de 1.5',
-        overUnder25: (home + away >= 3) ? 'Plus de 2.5' : 'Moins de 2.5',
-        oddEven: (home + away) % 2 == 0 ? 'Pair' : 'Impair',
-        estimatedOdds: '1: 1.80 | X: 3.40 | 2: 4.10',
-      ),
-    );
+    return getDynamicFallback(match, name);
   }
 }

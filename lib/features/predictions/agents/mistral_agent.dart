@@ -39,8 +39,8 @@ class MistralAgent extends BaseAgent {
         
         return AgentPrediction(
           agentName: name,
-          predictedHomeScore: jsonMap['predictedHomeScore'] ?? 1,
-          predictedAwayScore: jsonMap['predictedAwayScore'] ?? 1,
+          predictedHomeScore: parseScore(jsonMap, 'Home'),
+          predictedAwayScore: parseScore(jsonMap, 'Away'),
           confidence: (jsonMap['confidence'] ?? 0.70).toDouble(),
           reasoning: jsonMap['reasoning'] ?? 'Analyse de forme et confrontations.',
           bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
@@ -55,24 +55,6 @@ class MistralAgent extends BaseAgent {
   }
 
   AgentPrediction _fallbackPrediction(MatchModel match) {
-    int home = (match.homeTeam.name.length + 1) % 3;
-    int away = (match.awayTeam.name.length) % 3;
-    
-    return AgentPrediction(
-      agentName: name,
-      predictedHomeScore: home,
-      predictedAwayScore: away,
-      confidence: 0.71,
-      reasoning: 'Mistral suggère que la forme récente de ${match.homeTeam.name} est supérieure. ${match.awayTeam.name} aura du mal à s\'imposer loin de ses bases.',
-      bettingOptions: BettingOptions(
-        bttsFullTime: (home > 0 && away > 0) ? 'Oui' : 'Non',
-        bttsFirstHalf: 'Non',
-        bttsSecondHalf: (home > 0 && away > 0) ? 'Oui' : 'Non',
-        overUnder15: (home + away >= 2) ? 'Plus de 1.5' : 'Moins de 1.5',
-        overUnder25: (home + away >= 3) ? 'Plus de 2.5' : 'Moins de 2.5',
-        oddEven: (home + away) % 2 == 0 ? 'Pair' : 'Impair',
-        estimatedOdds: '1: 2.25 | X: 3.10 | 2: 3.20',
-      ),
-    );
+    return getDynamicFallback(match, name);
   }
 }

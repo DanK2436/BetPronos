@@ -56,8 +56,8 @@ class GeminiAgent extends BaseAgent {
       
       return AgentPrediction(
         agentName: name,
-        predictedHomeScore: jsonMap['predictedHomeScore'] ?? 1,
-        predictedAwayScore: jsonMap['predictedAwayScore'] ?? 1,
+        predictedHomeScore: parseScore(jsonMap, 'Home'),
+        predictedAwayScore: parseScore(jsonMap, 'Away'),
         confidence: (jsonMap['confidence'] ?? 0.70).toDouble(),
         reasoning: jsonMap['reasoning'] ?? 'Analyse des données historiques.',
         bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
@@ -79,25 +79,6 @@ class GeminiAgent extends BaseAgent {
   }
 
   AgentPrediction _fallbackPrediction(MatchModel match) {
-    int home = match.homeTeam.name.length % 3;
-    int away = match.awayTeam.name.length % 3;
-    if (home == away) home += 1;
-    
-    return AgentPrediction(
-      agentName: name,
-      predictedHomeScore: home,
-      predictedAwayScore: away,
-      confidence: 0.78,
-      reasoning: 'Analyse basée sur la dynamique de ${match.homeTeam.name} à domicile contre ${match.awayTeam.name}. Avantage statistique pour l\'hôte.',
-      bettingOptions: BettingOptions(
-        bttsFullTime: (home > 0 && away > 0) ? 'Oui' : 'Non',
-        bttsFirstHalf: 'Non',
-        bttsSecondHalf: (home > 0 && away > 0) ? 'Oui' : 'Non',
-        overUnder15: (home + away >= 2) ? 'Plus de 1.5' : 'Moins de 1.5',
-        overUnder25: (home + away >= 3) ? 'Plus de 2.5' : 'Moins de 2.5',
-        oddEven: (home + away) % 2 == 0 ? 'Pair' : 'Impair',
-        estimatedOdds: '1: 1.95 | X: 3.30 | 2: 3.90',
-      ),
-    );
+    return getDynamicFallback(match, name);
   }
 }

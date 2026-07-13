@@ -38,8 +38,8 @@ class OpenAiAgent extends BaseAgent {
         
         return AgentPrediction(
           agentName: name,
-          predictedHomeScore: jsonMap['predictedHomeScore'] ?? 1,
-          predictedAwayScore: jsonMap['predictedAwayScore'] ?? 1,
+          predictedHomeScore: parseScore(jsonMap, 'Home'),
+          predictedAwayScore: parseScore(jsonMap, 'Away'),
           confidence: (jsonMap['confidence'] ?? 0.75).toDouble(),
           reasoning: jsonMap['reasoning'] ?? 'Analyse tactique approfondie.',
           bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
@@ -54,24 +54,6 @@ class OpenAiAgent extends BaseAgent {
   }
 
   AgentPrediction _fallbackPrediction(MatchModel match) {
-    int home = (match.homeTeam.name.hashCode % 3);
-    int away = (match.awayTeam.name.hashCode % 3);
-    
-    return AgentPrediction(
-      agentName: name,
-      predictedHomeScore: home,
-      predictedAwayScore: away,
-      confidence: 0.82,
-      reasoning: 'Analyse de l\'efficacité offensive de ${match.homeTeam.name} et de la solidité défensive de ${match.awayTeam.name}. Match tactiquement serré.',
-      bettingOptions: BettingOptions(
-        bttsFullTime: (home > 0 && away > 0) ? 'Oui' : 'Non',
-        bttsFirstHalf: 'Non',
-        bttsSecondHalf: (home > 0 && away > 0) ? 'Oui' : 'Non',
-        overUnder15: (home + away >= 2) ? 'Plus de 1.5' : 'Moins de 1.5',
-        overUnder25: (home + away >= 3) ? 'Plus de 2.5' : 'Moins de 2.5',
-        oddEven: (home + away) % 2 == 0 ? 'Pair' : 'Impair',
-        estimatedOdds: '1: 2.10 | X: 3.20 | 2: 3.50',
-      ),
-    );
+    return getDynamicFallback(match, name);
   }
 }

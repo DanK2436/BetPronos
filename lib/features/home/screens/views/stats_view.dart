@@ -122,7 +122,7 @@ class _StatsViewState extends State<StatsView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '\$winRate%',
+                    '$winRate%',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 48,
@@ -198,7 +198,7 @@ class _StatsViewState extends State<StatsView> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(agent, style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-              Text('\$accuracy%', style: const TextStyle(color: AppColors.primaryLight, fontWeight: FontWeight.bold)),
+              Text('$accuracy%', style: const TextStyle(color: AppColors.primaryLight, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 8),

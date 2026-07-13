@@ -59,7 +59,7 @@ class _PremiumViewState extends State<PremiumView> {
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
     final plan = _plans[_selectedPlanIndex];
-    final reference = 'bp_${DateTime.now().millisecondsSinceEpoch}';
+    final reference = 'bpx_${DateTime.now().millisecondsSinceEpoch}';
 
     final res = await _shwaryService.initializeDirectPayment(
       userId: authProvider.user?.id ?? '',

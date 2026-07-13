@@ -55,7 +55,7 @@ class _CouponScreenState extends State<CouponScreen>
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '\${coupon.selectionCount}',
+                      '${coupon.selectionCount}',
                       style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
@@ -171,7 +171,7 @@ class _CouponScreenState extends State<CouponScreen>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '\${coupon.selectionCount} sélection(s)',
+                  '${coupon.selectionCount} sélection(s)',
                   style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -196,7 +196,7 @@ class _CouponScreenState extends State<CouponScreen>
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'x\${coupon.totalOdds.toStringAsFixed(2)}',
+                  'x${coupon.totalOdds.toStringAsFixed(2)}',
                   style: const TextStyle(color: AppColors.success, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -219,11 +219,11 @@ class _CouponScreenState extends State<CouponScreen>
           return ListTile(
             leading: Icon(selIcon, color: selColor, size: 20),
             title: Text(
-              '\${s.homeTeamName} vs \${s.awayTeamName}',
+              '${s.homeTeamName} vs ${s.awayTeamName}',
               style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
             ),
             subtitle: Text(
-              '\${_getBetTypeName(s.betType)}: \${s.selectedValue}',
+              '${_getBetTypeName(s.betType)}: ${s.selectedValue}',
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
             ),
             trailing: Text(
@@ -256,7 +256,7 @@ class _CouponScreenState extends State<CouponScreen>
                   children: [
                     Expanded(
                       child: Text(
-                        '\${selection.homeTeamName} vs \${selection.awayTeamName}',
+                        '${selection.homeTeamName} vs ${selection.awayTeamName}',
                         style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,

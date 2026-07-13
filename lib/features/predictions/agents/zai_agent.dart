@@ -38,8 +38,8 @@ class ZaiAgent extends BaseAgent {
         final jsonMap = json.decode(content);
         return AgentPrediction(
           agentName: name,
-          predictedHomeScore: jsonMap['predictedHomeScore'] ?? 1,
-          predictedAwayScore: jsonMap['predictedAwayScore'] ?? 0,
+          predictedHomeScore: parseScore(jsonMap, 'Home'),
+          predictedAwayScore: parseScore(jsonMap, 'Away'),
           confidence: (jsonMap['confidence'] ?? 0.73).toDouble(),
           reasoning: jsonMap['reasoning'] ?? 'Analyse statistique Z.ai.',
           bettingOptions: BettingOptions.fromJson(jsonMap['bettingOptions'] ?? {}),
@@ -54,23 +54,6 @@ class ZaiAgent extends BaseAgent {
   }
 
   AgentPrediction _fallback(MatchModel match) {
-    const home = 1;
-    const away = 0;
-    return AgentPrediction(
-      agentName: name,
-      predictedHomeScore: home,
-      predictedAwayScore: away,
-      confidence: 0.73,
-      reasoning: 'Z.ai : Statistiquement, l\'avantage du terrain favorise ${match.homeTeam.name}. Les données xG prédisent un match à faible score.',
-      bettingOptions: BettingOptions(
-        bttsFullTime: 'Non',
-        bttsFirstHalf: 'Non',
-        bttsSecondHalf: 'Non',
-        overUnder15: 'Moins de 1.5',
-        overUnder25: 'Moins de 2.5',
-        oddEven: 'Impair',
-        estimatedOdds: '1: 1.70 | X: 3.50 | 2: 5.20',
-      ),
-    );
+    return getDynamicFallback(match, name);
   }
 }

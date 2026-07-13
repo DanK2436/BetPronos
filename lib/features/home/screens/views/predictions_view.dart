@@ -306,7 +306,7 @@ class _PredictionsViewState extends State<PredictionsView> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  '\${(consensus.overallConfidence * 100).toStringAsFixed(0)}% Confiance',
+                  '${(consensus.overallConfidence * 100).toStringAsFixed(0)}% Confiance',
                   style: const TextStyle(color: AppColors.success, fontSize: 12, fontWeight: FontWeight.bold),
                 ),
               ),
@@ -315,7 +315,7 @@ class _PredictionsViewState extends State<PredictionsView> {
           const SizedBox(height: 16),
           Center(
             child: Text(
-              '\${consensus.consensusHomeScore} - \${consensus.consensusAwayScore}',
+              '${consensus.consensusHomeScore} - ${consensus.consensusAwayScore}',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 32,
@@ -335,8 +335,8 @@ class _PredictionsViewState extends State<PredictionsView> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildBetChip('BTTS: \${consensus.consensusBetting.bttsFullTime}'),
-              _buildBetChip('Buts: \${consensus.consensusBetting.overUnder25}'),
+              _buildBetChip('BTTS: ${consensus.consensusBetting.bttsFullTime}'),
+              _buildBetChip('Buts: ${consensus.consensusBetting.overUnder25}'),
             ],
           ),
           const SizedBox(height: 16),
