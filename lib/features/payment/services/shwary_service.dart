@@ -33,7 +33,7 @@ class ShwaryService {
     if (lowerOp.contains('orange')) {
       providerCode = 'ORANGE';
     } else if (lowerOp.contains('airtel')) {
-      providerCode = 'AIRTEL';
+      providerCode = 'AITEL'; // Note : 'AITEL' (sans le R) requis par MaishaPay
     } else if (lowerOp.contains('mpesa') || lowerOp.contains('pesa')) {
       providerCode = 'MPESA';
     }
