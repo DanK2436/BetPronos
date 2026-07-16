@@ -54,14 +54,13 @@ class ApiConstants {
   static const String ollamaKey = "bcc6a5daa24146a3a463728031da0f35.JqFbnFnPYpQzreSkp50Xfofr";
 
   // ============================================================
-  // PAIEMENT SHWARY (Orange Money, Airtel Money, M-Pesa via RDC)
+  // PAIEMENT MAISHAPAY (Orange Money, Airtel Money, M-Pesa via RDC)
   // ============================================================
-  // Auth : x-merchant-id + x-merchant-key (voir docs: github.com/shwary-co/shwary-doc)
-  static const String shwaryMerchantId = "bddffc43-02a9-455d-9c2c-09928ac539cd";
-  static const String shwaryApiKey = "shwary_bddffc43-02a9-455d-9c2c-09928ac539cd";
-  static const String shwaryBaseUrl = "https://api.shwary.com/api/v1";
-  static const String shwaryWebhookUrl =
-      "https://cgyiipfmplrrshevhpof.supabase.co/functions/v1/shwary-webhook";
+  static const String maishaPayPublicApiKey = "MP-LIVEPK-DOw\$T0SnM/SekDy32h0M5\$A6Z2H350e.TJSq1HIRT70jndZdocX.v53cSIcxy65\$qD2ThvocUy\$EYn10vD\$3S80\$Mh4SnfByyHSH.Fazv1Dfmc2uy9sjE7VG";
+  static const String maishaPaySecretApiKey = "MP-LIVESK-.QR7cOsKCy6GE8f2lue2J.uF8MgITIRNzPzC1I\$XDj\$h2R7lF1\$aZ0i0B.Md0nJZD0AUrqeQR.Ld8U.cPMHTGfCbLB\$SV3FfH/jd6Btyah\$eiCQ5Y\$7r2uu2";
+  static const String maishaPayBaseUrl = "https://marchand.maishapay.online/api/payment/rest/vers1.0/merchant";
+  static const String maishaPayWebhookUrl =
+      "https://cgyiipfmplrrshevhpof.supabase.co/functions/v1/maishapay-webhook";
 
   // Plans tarifaires (en CDF)
   static const Map<String, int> subscriptionPlans = {
