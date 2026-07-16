@@ -71,7 +71,8 @@ class ShwaryService {
           'amount': amount.toDouble(),
           'currency': currency,
           'customerFullName': email.split('@').first,
-          'customerPhoneNumber': formattedPhone,
+          'walletID': formattedPhone,
+          'chanel': 'MOBILEMONEY',
           'provider': providerCode,
         }),
       ).timeout(const Duration(seconds: 20));
