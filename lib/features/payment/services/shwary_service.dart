@@ -112,7 +112,7 @@ class ShwaryService {
         debugPrint('⚠️ MaishaPay erreur ${response.statusCode}: ${response.body}');
         return {
           'success': false,
-          'error': 'Erreur API MaishaPay: ${response.statusCode}',
+          'error': 'Erreur API MaishaPay: ${response.statusCode} - ${response.body}',
           'reference': reference,
         };
       }
