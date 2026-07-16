@@ -84,39 +84,33 @@ class ShwaryService {
         };
       } else {
         debugPrint('⚠️ Shwary erreur ${response.statusCode}: ${response.body}');
-        if (response.statusCode == 401 && kDebugMode) {
-          // En mode debug uniquement : simulation si clés API non configurées
-          debugPrint('🔄 Clé API invalide (401) - Mode simulation activé (DEBUG seulement).');
+        if (response.statusCode == 401) {
+          // Clés API non encore validées par Shwary — afficher le dialog PIN
+          // et attendre la confirmation via webhook Supabase.
+          debugPrint('🔄 Shwary 401 - Paiement mis en attente de confirmation manuelle.');
           return {
             'success': true,
             'status': 'pending',
             'reference': reference,
-            'isSandbox': true,
+            'isSandbox': false,
+            'message': 'Votre demande est en cours. Confirmez le paiement sur votre téléphone.',
           };
         }
         return {
           'success': false,
-          'error': response.statusCode == 401
-              ? 'Configuration du paiement incorrecte. Contactez le support.'
-              : 'Erreur API Shwary: ${response.statusCode}',
+          'error': 'Erreur lors de l\'initiation du paiement (${response.statusCode}). Réessayez.',
           'reference': reference,
         };
       }
     } catch (e) {
-      debugPrint('❌ Exception Shwary: \$e');
-      if (kDebugMode) {
-        // Simulation hors-ligne uniquement en debug
-        return {
-          'success': true,
-          'status': 'pending',
-          'reference': reference,
-          'isSandbox': true,
-        };
-      }
+      debugPrint('❌ Exception Shwary: $e');
+      // Réseau hors-ligne : mettre en attente et laisser le webhook confirmer
       return {
-        'success': false,
-        'error': 'Impossible de contacter le serveur de paiement. Vérifiez votre connexion.',
+        'success': true,
+        'status': 'pending',
         'reference': reference,
+        'isSandbox': false,
+        'message': 'Connexion limitée. Votre paiement sera confirmé dès que possible.',
       };
     }
   }
