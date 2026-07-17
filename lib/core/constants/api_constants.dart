@@ -46,9 +46,9 @@ class ApiConstants {
   static const String grokKey = "xai-rEKaV75zjevaaph7tGFh6RbKZMkzW1TyBdPk3NwelJ0qsVM5S8n9K8rXZ0udZ5nS7JyaGeLmQ6pIg52a";
   static const String grokBaseUrl = "https://api.x.ai/v1/chat/completions";
 
-  // Z.ai
+  // Z.ai (Zhipu AI / ChatGLM)
   static const String zaiKey = "69a4b36afdfb483e9f3e4b07dc5bcc1d.Zshz6QV4bKZzH8yv";
-  static const String zaiBaseUrl = "https://api.z.ai/api/v1/chat/completions";
+  static const String zaiBaseUrl = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
 
   // Ollama (local, optionnel)
   static const String ollamaKey = "bcc6a5daa24146a3a463728031da0f35.JqFbnFnPYpQzreSkp50Xfofr";

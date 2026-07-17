@@ -153,7 +153,7 @@ class _PredictionsViewState extends State<PredictionsView> {
                   const Icon(Icons.bolt, size: 16, color: AppColors.primary),
                   const SizedBox(width: 4),
                   Text(
-                    authProvider.isPremium ? 'Illimité' : '\${authProvider.predictionsLeft}',
+                    authProvider.isPremium ? 'Illimité' : '${authProvider.predictionsLeft}',
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,

@@ -19,13 +19,23 @@ class ShwaryService {
     required String phoneNumber,
     required String planName,
   }) async {
-    // 1. Formater le numéro au format E.164 (+243...)
+    // 1. Formater le numéro pour MaishaPay au format E.164 : +243XXXXXXXXX
     String formattedPhone = phoneNumber.trim();
-    if (formattedPhone.startsWith('0')) {
-      formattedPhone = '+243${formattedPhone.substring(1)}';
-    } else if (!formattedPhone.startsWith('+')) {
-      formattedPhone = '+243$formattedPhone';
+    // Supprimer le + si présent pour reconstruire proprement
+    if (formattedPhone.startsWith('+')) {
+      formattedPhone = formattedPhone.substring(1);
     }
+    // Si commence par 0, remplacer par 243
+    if (formattedPhone.startsWith('0')) {
+      formattedPhone = '243${formattedPhone.substring(1)}';
+    }
+    // Si ne commence pas par 243, ajouter le préfixe
+    if (!formattedPhone.startsWith('243')) {
+      formattedPhone = '243$formattedPhone';
+    }
+    // Remettre le + devant (format E.164 requis par MaishaPay)
+    formattedPhone = '+$formattedPhone';
+
 
     // 2. Associer l'opérateur avec le code de fournisseur MaishaPay
     String providerCode = 'ORANGE';
@@ -71,11 +81,12 @@ class ShwaryService {
           'amount': amount.toDouble(),
           'currency': currency,
           'customerFullName': email.split('@').first,
+          'customerPhoneNumber': formattedPhone,
           'walletID': formattedPhone,
           'chanel': 'MOBILEMONEY',
           'provider': providerCode,
         }),
-      ).timeout(const Duration(seconds: 20));
+      ).timeout(const Duration(seconds: 30));
 
       debugPrint('📡 MaishaPay réponse: ${response.statusCode} — ${response.body}');
 

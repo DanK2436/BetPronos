@@ -106,7 +106,7 @@ class _ProfileViewState extends State<ProfileView> {
               iconColor: AppColors.primary,
               title: 'Prédictions restantes',
               trailing: Text(
-                authProvider.isPremium ? 'Illimité' : '\${authProvider.predictionsLeft}',
+                authProvider.isPremium ? 'Illimité' : '${authProvider.predictionsLeft}',
                 style: const TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 16),
               ),
             ),

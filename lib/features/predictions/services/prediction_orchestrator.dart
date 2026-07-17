@@ -6,7 +6,7 @@ import '../agents/mistral_agent.dart';
 import '../agents/deepseek_agent.dart';
 import '../agents/kimi_agent.dart';
 import '../agents/grok_agent.dart';
-import '../agents/zai_agent.dart';
+import '../agents/perplexity_agent.dart';
 import '../models/prediction_model.dart';
 import '../../../shared/models/match_model.dart';
 
@@ -19,8 +19,9 @@ class PredictionOrchestrator {
     DeepSeekAgent(),
     KimiAgent(),
     GrokAgent(),
-    ZaiAgent(),
+    PerplexityAgent(), // Remplace ZaiAgent — recherche web en temps réel
   ];
+
 
   Future<ConsensusPrediction> getConsensus(MatchModel match) async {
     debugPrint('🤖 Lancement de ${_agents.length} agents IA pour ${match.homeTeam.name} vs ${match.awayTeam.name}...');
@@ -95,16 +96,27 @@ class PredictionOrchestrator {
       estimatedOdds: odds,
     );
 
-    // Résumé de l'analyse
+    // Résumé de l'analyse enrichi
     final pct = (overallConfidence * 100).toStringAsFixed(0);
-    String summary;
+    final n = predictions.length;
+    String result;
+    String scoreStr = '$consensusHome–$consensusAway';
+    
     if (consensusHome > consensusAway) {
-      summary = 'Consensus : Victoire de ${match.homeTeam.name} à domicile ($consensusHome–$consensusAway). Options recommandées : ${overUnder15 == "Plus de 1.5" ? "Plus de 1.5 buts" : "Moins de 1.5 buts"} et les deux équipes marquent : $bttsFT. Cotes : $odds.';
+      result = 'Victoire ${match.homeTeam.name}';
     } else if (consensusAway > consensusHome) {
-      summary = 'Consensus : Victoire à l\'extérieur de ${match.awayTeam.name} ($consensusHome–$consensusAway). Options recommandées : $overUnder25 et les deux équipes marquent : $bttsFT. Cotes : $odds.';
+      result = 'Victoire ${match.awayTeam.name}';
     } else {
-      summary = 'Consensus : Match nul à forte intensité ($consensusHome–$consensusAway). Recommandation : BTTS $bttsFT et total de buts $oddEven. Cotes : $odds.';
+      result = 'Match Nul';
     }
+    
+    String summary = 'Consensus $n/7 IAs ($pct% confiance) — $result $scoreStr. '
+        'BTTS: $bttsFT | '
+        '$overUnder25 | '
+        'Buts: $oddEven | '
+        'Cotes: $odds';
+
+    debugPrint('✅ Consensus calculé sur $n agents IA: $scoreStr ($pct% confiance)');
 
     return ConsensusPrediction(
       matchId: match.id,

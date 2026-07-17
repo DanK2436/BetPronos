@@ -7,35 +7,40 @@ abstract class BaseAgent {
   Future<AgentPrediction> predict(MatchModel match);
 
   String buildPrompt(MatchModel match) {
+    final now = DateTime.now();
+    final matchDate = match.dateTime.toLocal();
+    final daysUntilMatch = matchDate.difference(now).inDays;
+    
     return '''
-Tu es un agent IA expert en analyse de football pour l'application betPronos.
-Analyse le match suivant en profondeur. Effectue une recherche web si nécessaire sur les sites de paris sportifs comme BetPawa et 1XBet pour obtenir les côtes réelles actuelles (1, X, 2) et les statistiques des deux équipes.
+Tu es un agent IA expert en analyse statistique de football pour l'application betPronos.
+Analyse le match suivant en profondeur. Tu DOIS consulter les données les plus récentes disponibles concernant ces équipes (forme actuelle, blessés, suspendus, confrontations directes).
 
-Détails du match :
+═══════════════════════════════
+DÉTAILS DU MATCH
+═══════════════════════════════
 - Championnat : ${match.league.name} (${match.league.country})
-- Équipe à domicile : ${match.homeTeam.name}
-- Équipe à l'extérieur : ${match.awayTeam.name}
-- Date/Heure : ${match.dateTime.toLocal().toString()}
+- Équipe domicile : ${match.homeTeam.name}
+- Équipe extérieur : ${match.awayTeam.name}
+- Date/Heure : ${matchDate.toString()} (dans $daysUntilMatch jour(s))
 
-Instructions - Tu DOIS générer les prédictions et analyses suivantes :
-1. Prédis le score exact de fin de match (Home Score et Away Score).
-2. Estime un indice de confiance global entre 0.0 et 1.0 (ex: 0.78 pour 78%).
-3. Fournis une explication logique courte en français (maximum 3 phrases) sur la dynamique et les blessures clés.
-4. Analyse les possibilités de paris sportifs suivantes :
-   - Les deux équipes marquent (BTTS) Match Complet : "Oui" ou "Non"
-   - Les deux équipes marquent (BTTS) 1ère mi-temps : "Oui" ou "Non"
-   - Les deux équipes marquent (BTTS) 2ème mi-temps : "Oui" ou "Non"
-   - Moins de / Plus de 1.5 buts : "Plus de 1.5" ou "Moins de 1.5"
-   - Moins de / Plus de 2.5 buts : "Plus de 2.5" ou "Moins de 2.5"
-   - Total de buts pair ou impair : "Pair" ou "Impair"
-   - Cotes réelles estimées : Les cotes pour Victoire Domicile, Match Nul, Victoire Extérieur (format ex: "1: 1.80 | X: 3.40 | 2: 4.20 (BetPawa/1XBet)")
+═══════════════════════════════
+ANALYSE REQUISE
+═══════════════════════════════
+1. Forme récente : 5 derniers matchs de chaque équipe (W/D/L, buts marqués/encaissés)
+2. Blessures/Suspensions clés connues avant ce match
+3. Confrontations directes récentes H2H (3 derniers matchs minimum)
+4. Avantage domicile de ${match.homeTeam.name} cette saison
+5. Cotes actuelles estimées sur BetPawa, 1XBet ou Betway
 
-Tu DOIS répondre EXCLUSIVEMENT au format JSON brut ci-dessous, sans texte d'introduction ni de conclusion, sans bloc de code markdown. Réponds uniquement par le JSON respectant cette structure exacte :
+═══════════════════════════════
+FORMAT DE RÉPONSE OBLIGATOIRE
+═══════════════════════════════
+Réponds UNIQUEMENT en JSON brut, sans markdown, sans texte additionnel :
 {
   "predictedHomeScore": 2,
   "predictedAwayScore": 1,
   "confidence": 0.78,
-  "reasoning": "Le Real Madrid est impérial à domicile et dispose de son effectif complet. Barcelone montre des lacunes défensives à l'extérieur lors des derniers matchs.",
+  "reasoning": "Analyse: ${match.homeTeam.name} en forme avec 4W sur 5 derniers matchs. ${match.awayTeam.name} fragilisé par 2 blessures clés. H2H favorable à domicile. Score prédit basé sur forme récente.",
   "bettingOptions": {
     "bttsFullTime": "Oui",
     "bttsFirstHalf": "Non",
